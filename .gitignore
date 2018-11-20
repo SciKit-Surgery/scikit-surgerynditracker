@@ -1,0 +1,12 @@
+# Pycharm
+/.idea
+
+# Generated files
+.tox
+.coverage
+*.pyc
+.pytest_cache/
+
+# PyInstaller
+build/
+dist/
