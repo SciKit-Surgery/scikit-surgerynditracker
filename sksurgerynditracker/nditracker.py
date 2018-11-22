@@ -69,12 +69,7 @@ class ndiTracker:
         #let's not bother with it for now, see what sort of errors we get if we call TSTOP when not in tracking mode?
         #check whether there's a call to ndi.
         #other wise just do this
-        ndiCommand(self.device,'TSTOP:')
-        errnum = ndiGetError(self.device)
-        if errnum != NDI_OKAY:
-            ndiClose(self.device)
-            raise IOError('Error when sending TSTOP to tracker. The error'
-                              ' was: {}'.format(ndiErrorString(errnum)))
+        self.StopTracking()
 
         #free ports that are waiting to be freed
         ndiCommand(self.device,'PHSR:01')
@@ -82,17 +77,7 @@ class ndiTracker:
         for toolIndex in range (numberOfTools):
             portHandle = ndiGetPHSRHandle(self.device,toolIndex)
             ndiCommand(self.device,"PHF:%02X",portHandle)
-
-            errnum = ndiGetError(self.device)
-            if errnum != NDI_OKAY:
-                ndiClose(self.device)
-                raise IOError('Error when freeing port handle {}. The error'
-                              ' was: {}'.format(toolIndex,ndiErrorString(errnum)))
-
-        # Set port handles and send SROM files to tracker
-        # We need to do this before initializing and enabling
-        # the ports waiting to be initialized.
-        # at this stage we're going to need a list of srom file names.
+            self._CheckForErrors('freeing port handle {}.'.format(toolIndex))
 
         for sromfilename in sromFilenames:
             #no wired tools
@@ -101,17 +86,25 @@ class ndiTracker:
             ndiCommand(self.device, 'PHRQ:*********1****')
             #not sure this is the python module
             portHandle = ndiGetPHRQHandle(self.device);
-            errnum = ndiGetError(self.device)
-            if errnum != NDI_OKAY:
-                ndiclose(self.device)
-                raise ioerror('error when freeing port handle {}. the error'
-                              ' was: {}'.format(toolindex,ndierrorstring(errnum)))
+            self._CheckForErrors('getting srom file port handle {}.'.format(portHandle))
 
             #this returns some sortof ndibit field? What do we do with it
             ndiPVWRFromFile(self.device, portHandle, sromfilename)
-            errnum = ndiGetError(self.device)
-            if errnum != NDI_OKAY:
-                ndiclose(self.device)
-                raise ioerror('error when setting srom file port handle {}. the error'
-                              ' was: {}'.format(toolindex,ndierrorstring(errnum)))
+            self._CheckForErrors('setting srom file port handle {}.'.format(portHandle))
+
+    def StartTracking (self):
+        ndiCommand(self.device, 'TSTART:')
+        self._CheckForErrors('starting tracking.'.format(toolIndex))
+
+    def StopTracking (self):
+        ndiCommand(self.device, 'TSTOP:')
+        self._CheckForErrors('stopping tracking.'.format(toolIndex))
+
+    def _CheckForErrors ( message ):
+        errnum = ndiGetError(self.device)
+        if errnum != NDI_OKAY:
+            ndiclose(self.device)
+            raise ioerror('error when {}. the error'
+            ' was: {}'.format(message,ndierrorstring(errnum)))
+
 
