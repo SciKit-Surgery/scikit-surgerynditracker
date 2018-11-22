@@ -14,6 +14,9 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiGetGXTransform, NDI_XFORMS_AND_STATUS,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE)
 
+from six import print_
+
+
 #where should we set things like this?
 VIRTUAL_SROM_SIZE=1024
 #THIS isn't necessary if we use ndicapy read from file function as that
@@ -86,21 +89,46 @@ class ndiTracker:
             ndiCommand(self.device, 'PHRQ:*********1****')
             #not sure this is the python module
             portHandle = ndiGetPHRQHandle(self.device);
+
+            print_("Loading  " , sromfilename, " to port handle ", portHandle);
             self._CheckForErrors('getting srom file port handle {}.'.format(portHandle))
 
             #this returns some sortof ndibit field? What do we do with it
             ndiPVWRFromFile(self.device, portHandle, sromfilename)
             self._CheckForErrors('setting srom file port handle {}.'.format(portHandle))
 
+    def _InitialisePorts (self):
+        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        print_("Initialising " , numberOfTools, " on device")
+        for toolIndex in range (numberOfTools):
+            portHandle = ndiGetPHSRHandle(self.device,toolIndex)
+            ndiCommand(self.device,"PINIT:%02X",portHandle)
+            self._CheckForErrors('Initialising port handle {}.'.format(portHandle))
+
+    def _EnableTools (self):
+        ndiCommand(self.device,"PHSR:03")
+        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        print_("Enabling " , numberOfTools, " on device")
+        for toolIndex in range (numberOfTools):
+            portHandle = ndiGetPHSRHandle(self.device,toolIndex)
+            #I think we can skip this bit for the minute, we're only
+            #going to implement default mode
+            #ndiCommand(self.device,"PHINF:%02X0001",portHandle)
+            mode='D'
+            print_("Enabling " , toolIndex);
+            ndiCommand(self.device,"PENA:%02X%c",portHandle,mode);
+            self._CheckForErrors('Enabling port handle {}.'.format(portHandle))
+        #we also need to initialise and enable !!
+
     def StartTracking (self):
         ndiCommand(self.device, 'TSTART:')
-        self._CheckForErrors('starting tracking.'.format(toolIndex))
+        self._CheckForErrors('starting tracking.')
 
     def StopTracking (self):
         ndiCommand(self.device, 'TSTOP:')
-        self._CheckForErrors('stopping tracking.'.format(toolIndex))
+        self._CheckForErrors('stopping tracking.')
 
-    def _CheckForErrors ( message ):
+    def _CheckForErrors ( self, message ):
         errnum = ndiGetError(self.device)
         if errnum != NDI_OKAY:
             ndiclose(self.device)
