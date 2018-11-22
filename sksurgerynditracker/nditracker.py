@@ -94,14 +94,20 @@ class ndiTracker:
             self._CheckForErrors('getting srom file port handle {}.'.format(portHandle))
 
             #this returns some sortof ndibit field? What do we do with it
-            ndiPVWRFromFile(self.device, portHandle, sromfilename)
+            reply=ndiPVWRFromFile(self.device, portHandle, sromfilename)
+            print_(reply)
             self._CheckForErrors('setting srom file port handle {}.'.format(portHandle))
 
+        ndiCommand(self.device,'PHSR:01')
+        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        print_("Now there are " , numberOfTools, " on device")
+
     def _InitialisePorts (self):
+        ndiCommand(self.device,'PHSR:02')
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
         print_("Initialising " , numberOfTools, " on device")
         for toolIndex in range (numberOfTools):
-            portHandle = ndiGetPHSRHandle(self.device,toolIndex)
+            portHandle = ndiGetPHRQHandle(self.device)
             ndiCommand(self.device,"PINIT:%02X",portHandle)
             self._CheckForErrors('Initialising port handle {}.'.format(portHandle))
 
@@ -110,7 +116,7 @@ class ndiTracker:
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
         print_("Enabling " , numberOfTools, " on device")
         for toolIndex in range (numberOfTools):
-            portHandle = ndiGetPHSRHandle(self.device,toolIndex)
+            portHandle = ndiGetPHRQHandle(self.device)
             #I think we can skip this bit for the minute, we're only
             #going to implement default mode
             #ndiCommand(self.device,"PHINF:%02X0001",portHandle)
@@ -118,6 +124,10 @@ class ndiTracker:
             print_("Enabling " , toolIndex);
             ndiCommand(self.device,"PENA:%02X%c",portHandle,mode);
             self._CheckForErrors('Enabling port handle {}.'.format(portHandle))
+
+        ndiCommand(self.device,"PHSR:04")
+        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        print_("There are " , numberOfTools, " enabled tools on device")
         #we also need to initialise and enable !!
 
     def StartTracking (self):
