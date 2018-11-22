@@ -130,6 +130,9 @@ class ndiTracker:
         print_("There are " , numberOfTools, " enabled tools on device")
         #we also need to initialise and enable !!
 
+    def GetFrame (self):
+        return ndiCommand(self.device, "TX:0801")
+
     def StartTracking (self):
         ndiCommand(self.device, 'TSTART:')
         self._CheckForErrors('starting tracking.')
