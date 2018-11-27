@@ -10,11 +10,12 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
                      ndiGetPHSRNumberOfHandles, ndiGetPHRQHandle,
                      ndiPVWRFromFile,
+                     ndiGetBXTransform,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
                      ndiGetGXTransform, NDI_XFORMS_AND_STATUS,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE)
 
-from six import print_
+from six import ( print_, int2byte)
 
 
 #where should we set things like this?
@@ -47,6 +48,7 @@ class ndiTracker:
         """Create an instance ready for connecting."""
         #super(Tracker, self).__init__()
         self.device = None
+        self.portHandles = None
 
     def Connect (self, ip , port ):
         self.device = ndiOpenNetwork(ip, port)
@@ -131,7 +133,20 @@ class ndiTracker:
         #we also need to initialise and enable !!
 
     def GetFrame (self):
-        return ndiCommand(self.device, "TX:0801")
+        #TX - will get a frame in text format, not the most efficient
+        #ndiCommand(self.device, "TX:0801")
+        #BX does it in binary format, then there are a bunch of handy
+        #helpers to convert to plain text.
+        ndiCommand(self.device, "BX:0801")
+        transform = None
+        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        portHandle = ndiGetPHRQHandle(self.device)
+        print_( portHandle)
+        return ndiGetBXTransform (self.device, int2byte(portHandle))
+        #ndiGetBXFrame??
+        #portnumber = 0;
+        #ndiGetTXTransform (self.device, portnumber, transform)
+
 
     def StartTracking (self):
         ndiCommand(self.device, 'TSTART:')
