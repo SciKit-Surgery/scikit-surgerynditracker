@@ -26,19 +26,52 @@ class ndiTracker:
     def Connect (self, configuration ):
         self._Configure( configuration )
         if self.trackerType == "vega":
-            self.device = ndiOpenNetwork(self.ip_address, self.port)
+            self._ConnectNetwork()
+        elif self.trackerType == "aurora" or self.trackerType == "polaris":
+            self._ConnectSerial()
 
         if not self.device:
-            raise IOError(
-            'Could not connect to NDI device found on '
-            '{}'.format(name))
+            raise IOError( 'Could not connect to NDI device found on ' )
 
         reply = ndiCommand(self.device, 'INIT:')
-        error = ndiGetError(self.device)
-        if  error != NDI_OKAY:
-            raise IOError(
-            'Error when sending command: '
-            '{}'.format(ndiErrorString(error)))
+        self._CheckForErrors('Sending INIT command {}.'.format(portHandle))
+
+        if self.trackerType == "aurora" or self.trackerType == "polaris":
+            ndiCommand(self.device,
+                'COMM:{:d}{:03d}{:d}'.format(NDI_115200, NDI_8N1, NDI_NOHANDSHAKE))
+
+        self._ReadSROMsFromFile()
+        self._InitialisePorts()
+        self._EnableTools()
+
+    def _ConnectNetwork (self):
+        self.device = ndiOpenNetwork(self.ip_address, self.port)
+
+    def _ConnectSerial (self):
+        if self.serialPort == -1:
+            for port_no in range(self.portsToProbe):
+            name = ndiDeviceName(port_no)
+            if not name:
+                continue
+            result = ndiProbe(name)
+            if result == NDI_OKAY:
+                break
+        else:
+            name = ndiDeviceName ( self.serialPort )
+            result = ndiProbe(name)
+
+        if result != NDI_OKAY:
+        raise IOError(
+            'Could not find any NDI device in '
+            '{} serial port candidates checked. '
+            'Please check the following:\n'
+            '\t1) Is an NDI device connected to your computer?\n'
+            '\t2) Is the NDI device switched on?\n'
+            '\t3) Do you have sufficient privilege to connect to '
+            'the device? (e.g. on Linux are you part of the "dialout" '
+            'group?)'.format(self.portsToProbe))
+
+        self.device = ndiOpen(name)
 
     def _Configure(self, configuration):
         """ Reads a configuration dictionary
@@ -67,16 +100,32 @@ class ndiTracker:
         if self.trackerType == "vega" or self.trackerType == "polaris":
             if "romfiles" not in configuration:
                 raise KeyError ( "Configuration for vega and polaris must contain a list of 'romfiles'" )
-            for romfile in configuration.get("romfiles"):
-                self.toolDescriptors.append( { "description" : romfile } )
+
+        #read romfiles for all configurations, not sure what would happen for aurora
+        for romfile in configuration.get("romfiles"):
+            self.toolDescriptors.append( { "description" : romfile } )
+
+        #optional entries for serial port connections
+        if "serial port" in configuration:
+            self.serialport = configuration.get("serial port")
+        else
+            self.serialport = -1
+
+        if "number of ports to probe" in configuration:
+            self.portsToProbe = configuration.get("number of ports to probe")
+        else
+            self.portsToProbe = 20
 
         if self.trackerType == "aurora" or  self.trackerType == "polaris" or self.trackerType == "dummy":
             raise NotImplementedError ( " Polaris, aurora, and dummy not implemented yet")
 
     def Close (self):
-        ndiCloseNetwork(self.device)
+        if self.trackerType == "vega":
+           ndiCloseNetwork(self.device)
+        else
+           ndiClose(self.device)
 
-    def ReadSROMsFromFile (self):
+    def _ReadSROMsFromFile (self):
         self.StopTracking()
 
         #free ports that are waiting to be freed

@@ -15,9 +15,7 @@ import time
 
 tracker=nditracker.ndiTracker()
 tracker.Connect(settings)
-tracker.ReadSROMsFromFile()
-tracker._InitialisePorts()
-tracker._EnableTools()
+
 tracker.StartTracking()
 for _ in range (1000):
     tracker.GetFrame()
