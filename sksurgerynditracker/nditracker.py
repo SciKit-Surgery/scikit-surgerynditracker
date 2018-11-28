@@ -48,7 +48,8 @@ class ndiTracker:
         """Create an instance ready for connecting."""
         #super(Tracker, self).__init__()
         self.device = None
-        self.portHandles = None
+        self.toolDescriptors = []
+        self.trackerType = None
 
     def Connect (self, ip , port ):
         self.device = ndiOpenNetwork(ip, port)
@@ -80,7 +81,7 @@ class ndiTracker:
         ndiCommand(self.device,'PHSR:01')
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
         for toolIndex in range (numberOfTools):
-            portHandle = ndiGetPHSRHandle(self.device,toolIndex)
+            portHandle = ndiGetPHRQHandle(self.device,toolIndex)
             ndiCommand(self.device,"PHF:%02X",portHandle)
             self._CheckForErrors('freeing port handle {}.'.format(toolIndex))
 
@@ -91,6 +92,8 @@ class ndiTracker:
             ndiCommand(self.device, 'PHRQ:*********1****')
             #not sure this is the python module
             portHandle = ndiGetPHRQHandle(self.device);
+            self.toolDescriptors.append( { "portHandle" : portHandle,
+                    "description" : sromfilename } )
 
             print_("Loading  " , sromfilename, " to port handle ", portHandle);
             self._CheckForErrors('getting srom file port handle {}.'.format(portHandle))
@@ -108,24 +111,21 @@ class ndiTracker:
         ndiCommand(self.device,'PHSR:02')
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
         print_("Initialising " , numberOfTools, " on device")
-        for toolIndex in range (numberOfTools):
-            portHandle = ndiGetPHRQHandle(self.device)
-            ndiCommand(self.device,"PINIT:%02X",portHandle)
-            self._CheckForErrors('Initialising port handle {}.'.format(portHandle))
+        for tool in self.toolDescriptors:
+            ndiCommand(self.device,"PINIT:%02X",tool.portHandle)
+            self._CheckForErrors('Initialising port handle {}.'.format(tool.get("portHandle")))
 
     def _EnableTools (self):
         ndiCommand(self.device,"PHSR:03")
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
         print_("Enabling " , numberOfTools, " on device")
-        for toolIndex in range (numberOfTools):
-            portHandle = ndiGetPHRQHandle(self.device)
+        for tool in self.toolDescriptors:
             #I think we can skip this bit for the minute, we're only
             #going to implement default mode
             #ndiCommand(self.device,"PHINF:%02X0001",portHandle)
             mode='D'
-            print_("Enabling " , toolIndex);
-            ndiCommand(self.device,"PENA:%02X%c",portHandle,mode);
-            self._CheckForErrors('Enabling port handle {}.'.format(portHandle))
+            ndiCommand(self.device,"PENA:%02X%c",tool.portHandle,mode);
+            self._CheckForErrors('Enabling port handle {}.'.format(tool.get("portHandle")))
 
         ndiCommand(self.device,"PHSR:04")
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
@@ -138,11 +138,9 @@ class ndiTracker:
         #BX does it in binary format, then there are a bunch of handy
         #helpers to convert to plain text.
         ndiCommand(self.device, "BX:0801")
-        transform = None
-        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
-        portHandle = ndiGetPHRQHandle(self.device)
-        print_( portHandle)
-        return ndiGetBXTransform (self.device, int2byte(portHandle))
+        for tool in self.toolDescriptors:
+            transform = None
+            print_ (ndiGetBXTransform (self.device, int2byte(tool.get("portHandle"))))
         #ndiGetBXFrame??
         #portnumber = 0;
         #ndiGetTXTransform (self.device, portnumber, transform)
