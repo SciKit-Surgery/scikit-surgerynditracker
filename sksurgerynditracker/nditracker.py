@@ -11,7 +11,8 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiGetGXTransform, NDI_XFORMS_AND_STATUS,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE)
 
-from six import ( print_, int2byte)
+from six import int2byte
+from numpy import full, nan
 
 class ndiTracker:
     """For NDI trackers, hopefully will support Polaris, Aurora,
@@ -34,7 +35,7 @@ class ndiTracker:
             raise IOError( 'Could not connect to NDI device found on ' )
 
         reply = ndiCommand(self.device, 'INIT:')
-        self._CheckForErrors('Sending INIT command {}.'.format(portHandle))
+        self._CheckForErrors('Sending INIT command')
 
         if self.trackerType == "aurora" or self.trackerType == "polaris":
             ndiCommand(self.device,
@@ -50,26 +51,26 @@ class ndiTracker:
     def _ConnectSerial (self):
         if self.serialPort == -1:
             for port_no in range(self.portsToProbe):
-            name = ndiDeviceName(port_no)
-            if not name:
-                continue
-            result = ndiProbe(name)
-            if result == NDI_OKAY:
-                break
+                name = ndiDeviceName(port_no)
+                if not name:
+                    continue
+                result = ndiProbe(name)
+                if result == NDI_OKAY:
+                    break
         else:
             name = ndiDeviceName ( self.serialPort )
             result = ndiProbe(name)
 
         if result != NDI_OKAY:
-        raise IOError(
-            'Could not find any NDI device in '
-            '{} serial port candidates checked. '
-            'Please check the following:\n'
-            '\t1) Is an NDI device connected to your computer?\n'
-            '\t2) Is the NDI device switched on?\n'
-            '\t3) Do you have sufficient privilege to connect to '
-            'the device? (e.g. on Linux are you part of the "dialout" '
-            'group?)'.format(self.portsToProbe))
+            raise IOError(
+                'Could not find any NDI device in '
+                '{} serial port candidates checked. '
+                'Please check the following:\n'
+                '\t1) Is an NDI device connected to your computer?\n'
+                '\t2) Is the NDI device switched on?\n'
+                '\t3) Do you have sufficient privilege to connect to '
+                'the device? (e.g. on Linux are you part of the "dialout" '
+                'group?)'.format(self.portsToProbe))
 
         self.device = ndiOpen(name)
 
@@ -108,12 +109,12 @@ class ndiTracker:
         #optional entries for serial port connections
         if "serial port" in configuration:
             self.serialport = configuration.get("serial port")
-        else
+        else:
             self.serialport = -1
 
         if "number of ports to probe" in configuration:
             self.portsToProbe = configuration.get("number of ports to probe")
-        else
+        else:
             self.portsToProbe = 20
 
         if self.trackerType == "aurora" or  self.trackerType == "polaris" or self.trackerType == "dummy":
@@ -122,7 +123,7 @@ class ndiTracker:
     def Close (self):
         if self.trackerType == "vega":
            ndiCloseNetwork(self.device)
-        else
+        else:
            ndiClose(self.device)
 
     def _ReadSROMsFromFile (self):
@@ -148,7 +149,6 @@ class ndiTracker:
 
         ndiCommand(self.device,'PHSR:01')
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
-        print_("Now there are " , numberOfTools, " on device")
 
     def _InitialisePorts (self):
         ndiCommand(self.device,'PHSR:02')
@@ -167,22 +167,29 @@ class ndiTracker:
 
         ndiCommand(self.device,"PHSR:04")
         numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
-        print_("There are " , numberOfTools, " enabled tools on device")
-        #we also need to initialise and enable !!
 
     def GetFrame (self):
-        #TX - will get a frame in text format, not the most efficient
-        #ndiCommand(self.device, "TX:0801")
-        #BX does it in binary format, then there are a bunch of handy
-        #helpers to convert to plain text.
-        ndiCommand(self.device, "BX:0801")
-        for tool in self.toolDescriptors:
-            print_ ( tool.get("description"))
-            print_ (ndiGetBXTransform (self.device, int2byte(tool.get("portHandle"))))
-        #ndiGetBXFrame??
-        #portnumber = 0;
-        #ndiGetTXTransform (self.device, portnumber, transform)
+        #init a numpy array, it would be better if this inited NaN
+        transforms= full ((len(self.toolDescriptors), 9), nan)
+        if not self.trackerType == "dummy":
+            ndiCommand(self.device, "BX:0801")
 
+        for i in range (len(self.toolDescriptors)):
+            transforms[i,0] = self.toolDescriptors[i].get("portHandle")
+            transform = ndiGetBXTransform (self.device, int2byte(self.toolDescriptors[i].get("portHandle")))
+            if not transform == "MISSING" and not transform == "DISABLED":
+                transforms[i,1:9] = (transform)
+
+        return transforms
+
+    def GetToolDescriptionsAndPortHandles (self):
+        """ Returns the port handles and tool descriptions """
+        descriptions = full ((len(self.toolDescriptors), 2), "empty" ,  dtype = object)
+        for i in range (len(self.toolDescriptors)):
+            descriptions[i,0] = i# self.toolDescriptors[i].get("portHandle")
+            descriptions[i,1] = self.toolDescriptors[i].get("description")
+
+        return descriptions
 
     def StartTracking (self):
         ndiCommand(self.device, 'TSTART:')
