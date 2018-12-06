@@ -2,39 +2,54 @@
 
 """scikit-surgerynditracker tests"""
 
-from sksurgerynditracker.ui.sksurgerynditracker_demo import run_demo
-
-import six
+import sksurgerynditracker.nditracker
 
 # Pytest style
 
-def test_using_pytest_sksurgerynditracker():
-    console = True
-    assert run_demo(console, "Hello World") == True
+def test_Connect():
+    #what testing can we do with out being attached to a tracker?
+    #What testing can we do when we are attached to a tracker?
+    #Do we have we build a fake ndi tracker, that listens on a port
+    #and responds appropriately. That could be another scikit
+    #library
+    assert True
 
-# Disable this test if root.mainloop is uncommented in
-# run_demo()
-def test_using_pytest_cookienewwithgitinit_withTK():
-    try:
-        import tkinter
-        try:
-            console=False
-            assert run_demo(console, "Hello World") == True
-        except tkinter.TclError:
-            six.print_("Got TCL error, probably no DISPLAY set, that's OK.")
-            assert True
-        except:
-            six.print_("Got another error (not TCL), that's not OK.")
-            assert False
+def test_ConnectNetwork():
+    assert True
 
-    except ModuleNotFoundError:
-        six.print_("Got module not found on tkinter, please check your python installation")
-        #we're not trying to test whether we have tkinter so this is ok
-        assert True
-    except ImportError:
-        six.print_("Got import error on tkinter, please check your python installation")
-        #we're not trying to test whether we have tkinter so this is ok
-        assert True
-    except:
-        assert False
+def test_ConnectSerial():
+    #could a fake ndi tracker impersonate a serial connection as well?.
+    assert True
+
+def test_Configure():
+    #here we can pass a variety of configuration dictionaries and check that
+    #performance is as expected.
+    assert True
+
+def test_Close():
+    assert True
+
+def test_ReadSROMSFromFile():
+    assert True
+
+def test_InitialisePorts():
+    assert True
+
+def test_EnableTools():
+    assert True
+
+def test_GetFrame():
+    assert True
+
+def test_GetToolDescriptionsAndPortHandles():
+    assert True
+
+def test_StartTracking():
+    assert True
+
+def test_StopTracking():
+    assert True
+
+def test_CheckForErrors():
+    assert True
 
