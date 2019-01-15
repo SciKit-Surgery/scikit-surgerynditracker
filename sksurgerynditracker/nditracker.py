@@ -2,17 +2,16 @@
 
 """Class implementing communication with NDI (Northern Digital) trackers"""
 
+from six import int2byte
+from numpy import full, nan
 from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
                      ndiGetPHSRNumberOfHandles, ndiGetPHRQHandle,
                      ndiPVWRFromFile,
                      ndiGetBXTransform,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
-                     ndiGetGXTransform, NDI_XFORMS_AND_STATUS,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE)
 
-from six import int2byte
-from numpy import full, nan
 
 class NDITracker:
     """For NDI trackers, hopefully will support Polaris, Aurora,
@@ -147,6 +146,9 @@ class NDITracker:
             raise NotImplementedError("Dummy not implemented yet.")
 
     def close(self):
+        """
+        Closes the connection to the NDI Tracker.
+        """
         if self.tracker_type == "vega":
             ndiCloseNetwork(self.device)
         else:
@@ -197,6 +199,16 @@ class NDITracker:
         ndiCommand(self.device, "PHSR:04")
 
     def get_frame(self):
+        """
+        Get's a frame of tracking data from the NDI device.
+        Each frame consists of a numpy array. The array has a
+        separate row for each tracked rigid body. Each
+        row contains:
+            the port handle,
+            3 columns for x,y,z coords,
+            4 columns for the rotation as a quaternion.
+            1 column containing the tracking quality.
+        """
         #init a numpy array, it would be better if this inited NaN
         transforms = full((len(self.tool_descriptors), 9), nan)
         if not self.tracker_type == "dummy":
@@ -223,10 +235,12 @@ class NDITracker:
         return descriptions
 
     def start_tracking(self):
+        """ Tells the NDI devices to start tracking. """
         ndiCommand(self.device, 'TSTART:')
         self._check_for_errors('starting tracking.')
 
     def stop_tracking(self):
+        """ Tells the NDI devices to stop tracking. """
         ndiCommand(self.device, 'TSTOP:')
         self._check_for_errors('stopping tracking.')
 
