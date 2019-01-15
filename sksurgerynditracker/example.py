@@ -5,7 +5,7 @@ with NDI Polaris, Vega, and Aurora trackers."""
 
 import time
 import six
-from nditracker import NDITracker
+from sksurgerynditracker.nditracker import NDITracker
 
 #configuration.
 SETTINGS_VEGA = {
