@@ -106,26 +106,42 @@ class NDITracker:
                 "and 'dummy'")
 
         if self.tracker_type == "vega":
-            if not "ip address" in configuration:
-                raise KeyError("Configuration for vega must contain"
-                               "'ip address'")
-            self.ip_address = configuration.get("ip address")
-            if not "port" in configuration:
-                self.port = 8765
-            else:
-                self.port = configuration.get("port")
+            self._config_vega(configuration)
 
-        if self.tracker_type == "vega" or self.tracker_type == "polaris":
-            if "romfiles" not in configuration:
-                raise KeyError("Configuration for vega and polaris must"
-                               "contain a list of 'romfiles'")
+        if self.tracker_type == "polaris":
+            self._config_polaris(configuration)
 
-        #read romfiles for all configurations, not sure what would happen
-        #for aurora
+        if self.tracker_type == "aurora":
+            self._config_aurora(configuration)
+
+    def _config_vega(self, configuration):
+        """
+        Internal function to check configuration of a polaris vega
+        """
+        if not "ip address" in configuration:
+            raise KeyError("Configuration for vega must contain"
+                           "'ip address'")
+        self.ip_address = configuration.get("ip address")
+        if not "port" in configuration:
+            self.port = 8765
+        else:
+            self.port = configuration.get("port")
+        if "romfiles" not in configuration:
+            raise KeyError("Configuration for vega and polaris must"
+                           "contain a list of 'romfiles'")
         for romfile in configuration.get("romfiles"):
             self.tool_descriptors.append({"description" : romfile})
 
-        #optional entries for serial port connections
+    def _config_polaris(self, configuration):
+        """
+        Internal function to check configuration for polaris vicra or spectra
+        """
+        if "romfiles" not in configuration:
+            raise KeyError("Configuration for vega and polaris must"
+                           "contain a list of 'romfiles'")
+        for romfile in configuration.get("romfiles"):
+            self.tool_descriptors.append({"description" : romfile})
+
         if "serial port" in configuration:
             self.serial_port = configuration.get("serial port")
         else:
@@ -136,14 +152,19 @@ class NDITracker:
         else:
             self.ports_to_probe = 20
 
-        if self.tracker_type == "aurora":
-            raise NotImplementedError("Aurora not implemented yet.")
+    def _config_aurora(self, configuration):
+        """
+        Internal function to check configuration of an aurora
+        """
+        if "serial port" in configuration:
+            self.serial_port = configuration.get("serial port")
+        else:
+            self.serial_port = -1
 
-        if self.tracker_type == "polaris":
-            raise NotImplementedError("Polaris not implemented yet.")
-
-        if self.tracker_type == "dummy":
-            raise NotImplementedError("Dummy not implemented yet.")
+        if "number of ports to probe" in configuration:
+            self.ports_to_probe = configuration.get("number of ports to probe")
+        else:
+            self.ports_to_probe = 20
 
     def close(self):
         """
