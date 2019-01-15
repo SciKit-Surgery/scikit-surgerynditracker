@@ -3,6 +3,10 @@
 """Brief example showing how to initialise, configure, and communicate
 with NDI Polaris, Vega, and Aurora trackers."""
 
+import time
+import six
+import nditracker
+
 #configuration.
 SETTINGS_VEGA = {
         "tracker type": "vega",
@@ -28,19 +32,15 @@ SETTINGS_DUMMY = {
         "tracker type": "dummy",
         }
 
-import nditracker
-import time
-import six
+TRACKER = nditracker.ndiTracker()
+TRACKER.Connect(SETTINGS_VEGA)
 
-tracker = nditracker.ndiTracker()
-tracker.Connect(SETTINGS_VEGA)
+TRACKER.StartTracking()
 
-tracker.StartTracking()
-
-six.print_(tracker.GetToolDescriptionsAndPortHandles())
+six.print_(TRACKER.GetToolDescriptionsAndPortHandles())
 for _ in range(20):
-    six.print_(tracker.GetFrame())
+    six.print_(TRACKER.GetFrame())
     time.sleep(0.300333)
 
-tracker.StopTracking()
-tracker.Close()
+TRACKER.StopTracking()
+TRACKER.Close()

@@ -39,7 +39,8 @@ class ndiTracker:
 
         if self.trackerType == "aurora" or self.trackerType == "polaris":
             ndiCommand(self.device,
-                'COMM:{:d}{:03d}{:d}'.format(NDI_115200, NDI_8N1, NDI_NOHANDSHAKE))
+                       'COMM:{:d}{:03d}{:d}'
+                       .format(NDI_115200, NDI_8N1, NDI_NOHANDSHAKE))
 
         self._ReadSROMsFromFile()
         self._InitialisePorts()
@@ -87,11 +88,14 @@ class ndiTracker:
             trackerType == "aurora" or trackerType == "dummy":
             self.trackerType = trackerType
         else:
-            raise ValueError("Supported trackers are 'vega', 'aurora', 'polaris', and 'dummy'")
+            raise ValueError(
+                "Supported trackers are 'vega', 'aurora', 'polaris', "
+                "and 'dummy'")
 
         if self.trackerType == "vega":
             if not "ip address" in configuration:
-                raise KeyError("Configuration for vega must contain 'ip address'")
+                raise KeyError("Configuration for vega must contain"
+                               "'ip address'")
             self.ip_address = configuration.get("ip address")
             if not "port" in configuration:
                 self.port = 8765
@@ -100,11 +104,13 @@ class ndiTracker:
 
         if self.trackerType == "vega" or self.trackerType == "polaris":
             if "romfiles" not in configuration:
-                raise KeyError("Configuration for vega and polaris must contain a list of 'romfiles'")
+                raise KeyError("Configuration for vega and polaris must"
+                               "contain a list of 'romfiles'")
 
-        #read romfiles for all configurations, not sure what would happen for aurora
+        #read romfiles for all configurations, not sure what would happen
+        #for aurora
         for romfile in configuration.get("romfiles"):
-            self.toolDescriptors.append({ "description" : romfile })
+            self.toolDescriptors.append({"description" : romfile})
 
         #optional entries for serial port connections
         if "serial port" in configuration:
@@ -117,56 +123,62 @@ class ndiTracker:
         else:
             self.portsToProbe = 20
 
-        if self.trackerType == "aurora" or  self.trackerType == "polaris" or self.trackerType == "dummy":
-            raise NotImplementedError(" Polaris, aurora, and dummy not implemented yet")
+        if self.trackerType == "aurora":
+            raise NotImplementedError("Aurora not implemented yet.")
+
+        if self.trackerType == "polaris":
+            raise NotImplementedError("Polaris not implemented yet.")
+
+        if self.trackerType == "dummy":
+            raise NotImplementedError("Dummy not implemented yet.")
 
     def Close(self):
         if self.trackerType == "vega":
-           ndiCloseNetwork(self.device)
+            ndiCloseNetwork(self.device)
         else:
-           ndiClose(self.device)
+            ndiClose(self.device)
 
     def _ReadSROMsFromFile(self):
         self.StopTracking()
 
         #free ports that are waiting to be freed
-        ndiCommand(self.device,'PHSR:01')
-        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        ndiCommand(self.device, 'PHSR:01')
+        numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
         for toolIndex in range(numberOfTools):
-            portHandle = ndiGetPHRQHandle(self.device,toolIndex)
-            ndiCommand(self.device,"PHF:%02X",portHandle)
+            portHandle = ndiGetPHRQHandle(self.device, toolIndex)
+            ndiCommand(self.device, "PHF:%02X", portHandle)
             self._CheckForErrors('freeing port handle {}.'.format(toolIndex))
 
         for tool in self.toolDescriptors:
             ndiCommand(self.device, 'PHRQ:*********1****')
-            portHandle = ndiGetPHRQHandle(self.device);
-            tool.update({ "portHandle" : portHandle })
+            portHandle = ndiGetPHRQHandle(self.device)
+            tool.update({"portHandle" : portHandle})
 
             self._CheckForErrors('getting srom file port handle {}.'.format(portHandle))
 
-            reply=ndiPVWRFromFile(self.device, portHandle, tool.get("description"))
+            reply = ndiPVWRFromFile(self.device, portHandle, tool.get("description"))
             self._CheckForErrors('setting srom file port handle {}.'.format(portHandle))
 
-        ndiCommand(self.device,'PHSR:01')
-        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        ndiCommand(self.device, 'PHSR:01')
+        numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
 
     def _InitialisePorts(self):
-        ndiCommand(self.device,'PHSR:02')
-        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        ndiCommand(self.device, 'PHSR:02')
+        numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
         for tool in self.toolDescriptors:
-            ndiCommand(self.device,"PINIT:%02X",tool.get("portHandle"))
+            ndiCommand(self.device, "PINIT:%02X", tool.get("portHandle"))
             self._CheckForErrors('Initialising port handle {}.'.format(tool.get("portHandle")))
 
     def _EnableTools(self):
-        ndiCommand(self.device,"PHSR:03")
-        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        ndiCommand(self.device, "PHSR:03")
+        numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
         for tool in self.toolDescriptors:
-            mode='D'
-            ndiCommand(self.device,"PENA:%02X%c",tool.get("portHandle"),mode);
+            mode = 'D'
+            ndiCommand(self.device, "PENA:%02X%c", tool.get("portHandle"), mode);
             self._CheckForErrors('Enabling port handle {}.'.format(tool.get("portHandle")))
 
-        ndiCommand(self.device,"PHSR:04")
-        numberOfTools=ndiGetPHSRNumberOfHandles(self.device)
+        ndiCommand(self.device, "PHSR:04")
+        numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
 
     def GetFrame(self):
         #init a numpy array, it would be better if this inited NaN
@@ -175,10 +187,10 @@ class ndiTracker:
             ndiCommand(self.device, "BX:0801")
 
         for i in range(len(self.toolDescriptors)):
-            transforms[i,0] = self.toolDescriptors[i].get("portHandle")
+            transforms[i, 0] = self.toolDescriptors[i].get("portHandle")
             transform = ndiGetBXTransform(self.device, int2byte(self.toolDescriptors[i].get("portHandle")))
             if not transform == "MISSING" and not transform == "DISABLED":
-                transforms[i,1:9] = (transform)
+                transforms[i, 1:9] = (transform)
 
         return transforms
 
@@ -186,8 +198,8 @@ class ndiTracker:
         """ Returns the port handles and tool descriptions """
         descriptions = full((len(self.toolDescriptors), 2), "empty" ,  dtype = object)
         for i in range(len(self.toolDescriptors)):
-            descriptions[i,0] = i# self.toolDescriptors[i].get("portHandle")
-            descriptions[i,1] = self.toolDescriptors[i].get("description")
+            descriptions[i, 0] = i# self.toolDescriptors[i].get("portHandle")
+            descriptions[i, 1] = self.toolDescriptors[i].get("description")
 
         return descriptions
 
@@ -204,6 +216,6 @@ class ndiTracker:
         if errnum != NDI_OKAY:
             ndiclose(self.device)
             raise ioerror('error when {}. the error'
-            ' was: {}'.format(message,ndierrorstring(errnum)))
+            ' was: {}'.format(message, ndierrorstring(errnum)))
 
 

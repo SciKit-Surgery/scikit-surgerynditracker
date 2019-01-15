@@ -12,9 +12,3 @@ if __name__ == "__main__" and not __package__:
     __package__ = "sksurgerynditracker"  # pylint: disable=redefined-builtin
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
     sys.path.append(path.dirname(path.dirname(__file__)))
-
-# pylint: disable=wrong-import-position
-from sksurgerynditracker.ui.sksurgerynditracker_command_line import main
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
