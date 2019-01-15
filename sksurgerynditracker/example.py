@@ -5,7 +5,7 @@ with NDI Polaris, Vega, and Aurora trackers."""
 
 import time
 import six
-import nditracker
+from nditracker import NDITracker
 
 #configuration.
 SETTINGS_VEGA = {
@@ -32,15 +32,15 @@ SETTINGS_DUMMY = {
         "tracker type": "dummy",
         }
 
-TRACKER = nditracker.ndiTracker()
-TRACKER.Connect(SETTINGS_VEGA)
+TRACKER = NDITracker()
+TRACKER.connect(SETTINGS_VEGA)
 
-TRACKER.StartTracking()
+TRACKER.start_tracking()
 
-six.print_(TRACKER.GetToolDescriptionsAndPortHandles())
+six.print_(TRACKER.get_tool_descriptions())
 for _ in range(20):
-    six.print_(TRACKER.GetFrame())
+    six.print_(TRACKER.get_frame())
     time.sleep(0.300333)
 
-TRACKER.StopTracking()
-TRACKER.Close()
+TRACKER.stop_tracking()
+TRACKER.close()
