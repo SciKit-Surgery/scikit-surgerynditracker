@@ -154,10 +154,13 @@ class ndiTracker:
             portHandle = ndiGetPHRQHandle(self.device)
             tool.update({"portHandle" : portHandle})
 
-            self._CheckForErrors('getting srom file port handle {}.'.format(portHandle))
+            self._CheckForErrors('getting srom file port handle {}.'
+                                 .format(portHandle))
 
-            reply = ndiPVWRFromFile(self.device, portHandle, tool.get("description"))
-            self._CheckForErrors('setting srom file port handle {}.'.format(portHandle))
+            reply = ndiPVWRFromFile(self.device, portHandle,
+                                    tool.get("description"))
+            self._CheckForErrors('setting srom file port handle {}.'
+                                 .format(portHandle))
 
         ndiCommand(self.device, 'PHSR:01')
         numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
@@ -167,28 +170,33 @@ class ndiTracker:
         numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
         for tool in self.toolDescriptors:
             ndiCommand(self.device, "PINIT:%02X", tool.get("portHandle"))
-            self._CheckForErrors('Initialising port handle {}.'.format(tool.get("portHandle")))
+            self._CheckForErrors('Initialising port handle {}.'
+                                 .format(tool.get("portHandle")))
 
     def _EnableTools(self):
         ndiCommand(self.device, "PHSR:03")
         numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
         for tool in self.toolDescriptors:
             mode = 'D'
-            ndiCommand(self.device, "PENA:%02X%c", tool.get("portHandle"), mode);
-            self._CheckForErrors('Enabling port handle {}.'.format(tool.get("portHandle")))
+            ndiCommand(self.device, "PENA:%02X%c", tool.get("portHandle"),
+                       mode)
+            self._CheckForErrors('Enabling port handle {}.'
+                                 .format(tool.get("portHandle")))
 
         ndiCommand(self.device, "PHSR:04")
         numberOfTools = ndiGetPHSRNumberOfHandles(self.device)
 
     def GetFrame(self):
         #init a numpy array, it would be better if this inited NaN
-        transforms= full((len(self.toolDescriptors), 9), nan)
+        transforms = full((len(self.toolDescriptors), 9), nan)
         if not self.trackerType == "dummy":
             ndiCommand(self.device, "BX:0801")
 
         for i in range(len(self.toolDescriptors)):
             transforms[i, 0] = self.toolDescriptors[i].get("portHandle")
-            transform = ndiGetBXTransform(self.device, int2byte(self.toolDescriptors[i].get("portHandle")))
+            transform = ndiGetBXTransform(self.device,
+                                          int2byte(self.toolDescriptors[i]
+                                                   .get("portHandle")))
             if not transform == "MISSING" and not transform == "DISABLED":
                 transforms[i, 1:9] = (transform)
 
@@ -196,9 +204,10 @@ class ndiTracker:
 
     def GetToolDescriptionsAndPortHandles(self):
         """ Returns the port handles and tool descriptions """
-        descriptions = full((len(self.toolDescriptors), 2), "empty" ,  dtype = object)
+        descriptions = full((len(self.toolDescriptors), 2), "empty",
+                            dtype=object)
         for i in range(len(self.toolDescriptors)):
-            descriptions[i, 0] = i# self.toolDescriptors[i].get("portHandle")
+            descriptions[i, 0] = i
             descriptions[i, 1] = self.toolDescriptors[i].get("description")
 
         return descriptions
@@ -215,7 +224,5 @@ class ndiTracker:
         errnum = ndiGetError(self.device)
         if errnum != NDI_OKAY:
             ndiclose(self.device)
-            raise ioerror('error when {}. the error'
-            ' was: {}'.format(message, ndierrorstring(errnum)))
-
-
+            raise ioerror('error when {}. the error was: {}'
+                          .format(message, ndierrorstring(errnum)))
