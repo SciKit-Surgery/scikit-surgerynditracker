@@ -2,4 +2,5 @@
 omit = 
         ./sksurgerynditracker/_version.py
         ./sksurgerynditracker/__init__.py
-        ./sksurgerynditracker/__main__.py
+        ./sksurgerynditracker/example.py
+

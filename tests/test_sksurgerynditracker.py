@@ -2,39 +2,176 @@
 
 """scikit-surgerynditracker tests"""
 
-from sksurgerynditracker.ui.sksurgerynditracker_demo import run_demo
+import pytest
+from sksurgerynditracker.nditracker import NDITracker
 
-import six
+#configuration.
+SETTINGS_VEGA = {
+        "tracker type": "vega",
+        "ip address" : "192.168.2.17",
+        "port" : 8765,
+        "romfiles" : [
+            "../data/something_else.rom",
+            "../data/8700339.rom"]
+        }
 
-# Pytest style
+SETTINGS_POLARIS = {
+        "tracker type": "polaris",
+        "romfiles" : [
+            "../data/something_else.rom",
+            "../data/8700339.rom"]
+        }
 
-def test_using_pytest_sksurgerynditracker():
-    console = True
-    assert run_demo(console, "Hello World") == True
+SETTINGS_AURORA = {
+        "tracker type": "aurora",
+        }
 
-# Disable this test if root.mainloop is uncommented in
-# run_demo()
-def test_using_pytest_cookienewwithgitinit_withTK():
-    try:
-        import tkinter
-        try:
-            console=False
-            assert run_demo(console, "Hello World") == True
-        except tkinter.TclError:
-            six.print_("Got TCL error, probably no DISPLAY set, that's OK.")
-            assert True
-        except:
-            six.print_("Got another error (not TCL), that's not OK.")
-            assert False
+SETTINGS_DUMMY = {
+        "tracker type": "dummy",
+        }
 
-    except ModuleNotFoundError:
-        six.print_("Got module not found on tkinter, please check your python installation")
-        #we're not trying to test whether we have tkinter so this is ok
-        assert True
-    except ImportError:
-        six.print_("Got import error on tkinter, please check your python installation")
-        #we're not trying to test whether we have tkinter so this is ok
-        assert True
-    except:
-        assert False
+def test_connect():
+    #what testing can we do with out being attached to a tracker?
+    #What testing can we do when we are attached to a tracker?
+    #We could build a fake ndi tracker, that listens on a port
+    #and responds appropriately.
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    tracker.close()
+
+def test_connect_network():
+    tracker = NDITracker()
+    with pytest.raises(IOError):
+        tracker.connect(SETTINGS_VEGA)
+    with pytest.raises(ValueError):
+        tracker.close()
+
+def test_connect_serial():
+    tracker = NDITracker()
+    with pytest.raises(IOError):
+        tracker.connect(SETTINGS_POLARIS)
+    with pytest.raises(ValueError):
+        tracker.close()
+
+def test_configure():
+    tracker = NDITracker()
+    no_rom = {
+        "tracker type": "polaris",
+        }
+    with pytest.raises(KeyError):
+        tracker._configure(no_rom)
+
+    bad_tracker = {
+        "tracker type": "optotrack",
+        }
+    with pytest.raises(ValueError):
+        tracker._configure(bad_tracker)
+
+    no_ip = {
+        "tracker type": "vega",
+        "romfiles": "[rom]"
+        }
+    with pytest.raises(KeyError):
+        tracker._configure(no_ip)
+
+    no_port = {
+        "tracker type": "vega",
+        "ip address": "tracker",
+        "romfiles": "[rom]"
+        }
+    tracker._configure(no_port)
+
+    aurora = { "tracker type": "aurora" }
+    tracker._configure(aurora)
+
+    aurora_sp = { "tracker type": "aurora",
+            "serial_port": "1"}
+    tracker._configure(aurora_sp)
+
+    aurora_np = { "tracker type": "aurora",
+            "ports to probe": "50"}
+    tracker._configure(aurora_np)
+
+def test_close():
+    with pytest.raises(ValueError):
+        tracker = NDITracker()
+        tracker.close()
+
+def test_read_sroms_from_file():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    with pytest.raises(ValueError):
+        tracker._read_sroms_from_file()
+    tracker.close()
+
+def test_initialise_ports():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    with pytest.raises(ValueError):
+        tracker._initialise_ports()
+    tracker.close()
+
+def test_enable_tools():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    with pytest.raises(ValueError):
+        tracker._enable_tools()
+    tracker.close()
+
+def test_get_frame():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    data = tracker.get_frame()
+    assert data.shape == (0,9)
+    assert data.dtype == 'float64'
+
+    dummy_two_rom = {
+        "tracker type": "dummy",
+        "romfiles" : [
+            "../data/something_else.rom",
+            "../data/8700339.rom"]
+        }
+
+    tracker.connect(dummy_two_rom)
+    data = tracker.get_frame()
+    assert data.shape == (2,9)
+    assert data.dtype == 'float64'
+
+def test_get_tool_descriptions():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    descriptions = tracker.get_tool_descriptions()
+    assert len(descriptions) == 0
+
+    dummy_two_rom = {
+        "tracker type": "dummy",
+        "romfiles" : [
+            "../data/something_else.rom",
+            "../data/8700339.rom"]
+        }
+
+    tracker.connect(dummy_two_rom)
+    descriptions = tracker.get_tool_descriptions()
+    assert len(descriptions) == 2
+
+def test_start_tracking():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    with pytest.raises(ValueError):
+        tracker.start_tracking()
+    tracker.close()
+
+def test_stop_tracking():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    with pytest.raises(ValueError):
+        tracker.stop_tracking()
+    tracker.close()
+
+def test_check_for_errors():
+    tracker = NDITracker()
+    tracker.connect(SETTINGS_DUMMY)
+    with pytest.raises(ValueError):
+        tracker._check_for_errors("dummy error")
+    tracker.close()
 
