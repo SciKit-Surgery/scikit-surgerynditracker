@@ -117,7 +117,7 @@ deploy pip to PyPI:
 
   environment:
     name: PyPI
-    url: https://test.pypi.python.org/pypi/sckit-surgerynditracker
+    url: https://pypi.python.org/pypi/sckit-surgerynditracker
 
   tags:
     - pip-production
@@ -136,4 +136,4 @@ deploy pip to PyPI:
     - python setup.py bdist_wheel
 
     # Upload to pypi
-    - twine upload --repository-url https://test.pypi.org/legacy/ dist/* --username $PYPI_TEST_USER --password $PYPI_TEST_PASS
+    - twine upload --repository pypi dist/* --username $PYPI_USER --password $PYPI_PASS
