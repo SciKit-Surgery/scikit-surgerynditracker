@@ -30,14 +30,13 @@ scikit-surgerynditracker is part of the `SNAPPY`_ software project, developed at
 Installing
 ----------
 
-You can pip install from PyPi or directly from the repository as follows:
-
 ::
 
-    pip install git+https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/scikit-surgerynditracker
+    pip install scikit-surgerynditracker
 
 Using
 -----
+Configuration is done using Python libraries. Tracking data is returned in NumPy arrays.
 
 ::
 
