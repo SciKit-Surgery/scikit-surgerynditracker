@@ -38,7 +38,9 @@ You can pip install from PyPi or directly from the repository as follows:
 
 Using
 -----
+
 ::
+
     from sksurgerynditracker.nditracker import NDITracker
     SETTINGS = {
         "tracker type": "polaris",
