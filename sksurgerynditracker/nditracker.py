@@ -52,7 +52,7 @@ class NDITracker:
             self._connect_serial()
 
         if self.tracker_type == "dummy":
-            self.device = True;
+            self.device = True
 
         if  self.tracker_type != "dummy":
             ndiCommand(self.device, 'INIT:')
@@ -69,7 +69,7 @@ class NDITracker:
 
     def _connect_network(self):
         #try and ping first to save time with timeouts
-        param = '-n' if system().lower()=='windows' else '-c'
+        param = '-n' if system().lower() == 'windows' else '-c'
         if call(['ping', param, '1', self.ip_address]) == 0:
             self.device = ndiOpenNetwork(self.ip_address, self.port)
         else:
@@ -112,6 +112,8 @@ class NDITracker:
         """ Reads a configuration dictionary
         describing the tracker configuration.
         and sets class variables.
+
+        raises: ValueError, KeyError
         """
         if not "tracker type" in configuration:
             raise KeyError("Configuration must contain 'Tracker type'")
@@ -132,6 +134,9 @@ class NDITracker:
 
         if self.tracker_type == "aurora":
             self._config_aurora(configuration)
+
+        if self.tracker_type == "dummy":
+            self._config_dummy(configuration)
 
     def _config_vega(self, configuration):
         """
@@ -185,6 +190,14 @@ class NDITracker:
         else:
             self.ports_to_probe = 20
 
+    def _config_dummy(self, configuration):
+        """
+        Internal function to check configuration of a testing dummy
+        """
+        if "romfiles" in configuration:
+            for romfile in configuration.get("romfiles"):
+                self.tool_descriptors.append({"description" : romfile})
+
     def close(self):
         """
         Closes the connection to the NDI Tracker and
@@ -204,6 +217,9 @@ class NDITracker:
         self.device = None
 
     def _read_sroms_from_file(self):
+        if not self.device:
+            raise ValueError('read srom called with no NDI device')
+
         self.stop_tracking()
 
         #free ports that are waiting to be freed
@@ -230,6 +246,9 @@ class NDITracker:
         ndiCommand(self.device, 'PHSR:01')
 
     def _initialise_ports(self):
+        if not self.device:
+            raise ValueError('init ports called with no NDI device')
+
         ndiCommand(self.device, 'PHSR:02')
         for tool in self.tool_descriptors:
             ndiCommand(self.device, "PINIT:%02X", tool.get("port handle"))
@@ -237,6 +256,9 @@ class NDITracker:
                                    .format(tool.get("port handle")))
 
     def _enable_tools(self):
+        if not self.device:
+            raise ValueError('enable tools called with no NDI device')
+
         ndiCommand(self.device, "PHSR:03")
         for tool in self.tool_descriptors:
             mode = 'D'
@@ -263,13 +285,13 @@ class NDITracker:
         if not self.tracker_type == "dummy":
             ndiCommand(self.device, "BX:0801")
 
-        for i in range(len(self.tool_descriptors)):
-            transforms[i, 0] = self.tool_descriptors[i].get("port handle")
-            transform = ndiGetBXTransform(self.device,
-                                          int2byte(self.tool_descriptors[i]
-                                                   .get("port handle")))
-            if not transform == "MISSING" and not transform == "DISABLED":
-                transforms[i, 1:9] = (transform)
+            for i in range(len(self.tool_descriptors)):
+                transforms[i, 0] = self.tool_descriptors[i].get("port handle")
+                transform = ndiGetBXTransform(self.device,
+                                              int2byte(self.tool_descriptors[i]
+                                                       .get("port handle")))
+                if not transform == "MISSING" and not transform == "DISABLED":
+                    transforms[i, 1:9] = (transform)
 
         return transforms
 
@@ -284,12 +306,18 @@ class NDITracker:
         return descriptions
 
     def start_tracking(self):
-        """ Tells the NDI devices to start tracking. """
+        """
+        Tells the NDI devices to start tracking.
+        raises: ValueError
+        """
         ndiCommand(self.device, 'TSTART:')
         self._check_for_errors('starting tracking.')
 
     def stop_tracking(self):
-        """ Tells the NDI devices to stop tracking. """
+        """
+        Tells the NDI devices to stop tracking.
+        raises: ValueError
+        """
         ndiCommand(self.device, 'TSTOP:')
         self._check_for_errors('stopping tracking.')
 
