@@ -14,7 +14,7 @@ setup(
     name='scikit-surgerynditracker',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    description='scikit-surgerynditracker',
+    description='Interface for Northern Digital (NDI) Trackers with data to NumPy arrays'
     long_description=long_description,
     url='https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/scikit-surgerynditracker',
     author='Stephen Thompson',

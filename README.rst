@@ -20,7 +20,7 @@ scikit-surgerynditracker
 
 
 
-scikit-surgerynditracker is a python project that does interesting things. 
+scikit-surgerynditracker is a python interface for Northern Digital (NDI) trackers. It should work with Polaris Vicra, Spectra, and Vega optical trackers and Aurora electromagnetic trackers. Tracking data is output as NumPy arrays.
 
 Author: Stephen Thompson
 
@@ -30,12 +30,29 @@ scikit-surgerynditracker is part of the `SNAPPY`_ software project, developed at
 Installing
 ----------
 
-You can pip install directly from the repository as follows:
+You can pip install from PyPi or directly from the repository as follows:
 
 ::
 
     pip install git+https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/scikit-surgerynditracker
 
+Using
+-----
+::
+    from sksurgerynditracker.nditracker import NDITracker
+    SETTINGS = {
+        "tracker type": "polaris",
+        "romfiles" : ["../data/8700339.rom"]
+            }
+    TRACKER = NDITracker()
+    TRACKER.connect(SETTINGS)
+
+    TRACKER.start_tracking()
+    print(TRACKER.get_frame()
+    TRACKER.stop_tracking()
+    TRACKER.close()
+
+See example.py for a full example
 
 Developing
 ----------

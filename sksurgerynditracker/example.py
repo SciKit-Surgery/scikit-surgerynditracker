@@ -13,14 +13,13 @@ SETTINGS_VEGA = {
         "ip address" : "192.168.2.17",
         "port" : 8765,
         "romfiles" : [
-            "../data/8700339_smallblue-150130.rom",
-            "../data/8700339.rom"]
+            "../data/8700339.rom",
+            "../data/something_else.rom"]
         }
 
 SETTINGS_POLARIS = {
         "tracker type": "polaris",
         "romfiles" : [
-            "../data/8700339_smallblue-150130.rom",
             "../data/8700339.rom"]
         }
 
