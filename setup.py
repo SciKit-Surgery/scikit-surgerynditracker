@@ -18,19 +18,18 @@ setup(
     long_description=long_description,
     url='https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/scikit-surgerynditracker',
     author='Stephen Thompson',
-    author_email='YOUR-EMAIL@ucl.ac.uk',
+    author_email='s.thompson@ucl.ac.uk',
     license='BSD-3 license',
     classifiers=[
         'Development Status :: 3 - Alpha',
 
         'Intended Audience :: Developers',
+        'Intended Audience :: Education',
         'Intended Audience :: Healthcare Industry',
         'Intended Audience :: Information Technology',
         'Intended Audience :: Science/Research',
 
-
         'License :: OSI Approved :: BSD License',
-
 
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
@@ -38,6 +37,7 @@ setup(
 
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
+        'Topic :: System :: Hardware',
     ],
 
     keywords='medical imaging',

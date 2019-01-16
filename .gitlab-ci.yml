@@ -112,8 +112,8 @@ deploy pip to PyPI:
 
   stage: deploy
   when: manual
-  #  only:
-  #  - tags
+  only:
+    - tags
 
   environment:
     name: PyPI
@@ -136,4 +136,4 @@ deploy pip to PyPI:
     - python setup.py bdist_wheel
 
     # Upload to pypi
-    - twine upload -repository-url https://test.pypi.org/legacy/ dist/* --username $PYPI_TEST_USER --password $PYPI_TEST_PASS
+    - twine upload --repository-url https://test.pypi.org/legacy/ dist/* --username $PYPI_TEST_USER --password $PYPI_TEST_PASS
