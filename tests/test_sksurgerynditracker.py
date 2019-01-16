@@ -41,13 +41,17 @@ def test_connect():
 
 def test_connect_network():
     tracker = NDITracker()
-    tracker.connect(SETTINGS_VEGA)
-    tracker.close()
-    assert True
+    with pytest.raises(OSError):
+        tracker.connect(SETTINGS_VEGA)
+    with pytest.raises(ValueError):
+        tracker.close()
 
 def test_connect_serial():
-    #could a fake ndi tracker impersonate a serial connection as well?.
-    assert True
+    tracker = NDITracker()
+    with pytest.raises(OSError):
+        tracker.connect(SETTINGS_POLARIS)
+    with pytest.raises(ValueError):
+        tracker.close()
 
 def test_configure():
     #here we can pass a variety of configuration dictionaries and check that

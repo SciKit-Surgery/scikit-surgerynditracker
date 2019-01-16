@@ -2,6 +2,8 @@
 
 """Class implementing communication with NDI (Northern Digital) trackers"""
 
+from platform import system
+from subprocess import call
 
 from six import int2byte
 from numpy import full, nan
@@ -66,7 +68,13 @@ class NDITracker:
             self._enable_tools()
 
     def _connect_network(self):
-        self.device = ndiOpenNetwork(self.ip_address, self.port)
+        #try and ping first to save time with timeouts
+        param = '-n' if system().lower()=='windows' else '-c'
+        if call(['ping', param, '1', self.ip_address]) == 0:
+            self.device = ndiOpenNetwork(self.ip_address, self.port)
+        else:
+            raise IOError('Could not find a device at {}'
+                          .format(self.ip_address))
         if not self.device:
             raise IOError('Could not connect to network NDI device at {}'
                           .format(self.ip_address))
