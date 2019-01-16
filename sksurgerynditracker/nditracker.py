@@ -2,6 +2,7 @@
 
 """Class implementing communication with NDI (Northern Digital) trackers"""
 
+
 from six import int2byte
 from numpy import full, nan
 from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
@@ -29,7 +30,7 @@ class NDITracker:
 
     def connect(self, configuration):
         """
-        Initialises and attempts to connect to an NDI Tracker.
+        Creates a NDI tracker devices and connects to an NDI Tracker.
 
         :param configuration: A dictionary containing details of the
         tracker.
@@ -38,30 +39,37 @@ class NDITracker:
             port:
             romfiles:
             serial port:
+
+        raises: IOError
         """
         self._configure(configuration)
         if self.tracker_type == "vega":
             self._connect_network()
-        elif self.tracker_type == "aurora" or self.tracker_type == "polaris":
+
+        if self.tracker_type in ("aurora", "polaris"):
             self._connect_serial()
 
-        if not self.device:
-            raise IOError('Could not connect to NDI device found on ')
+        if self.tracker_type == "dummy":
+            self.device = True;
 
-        ndiCommand(self.device, 'INIT:')
-        self._check_for_errors('Sending INIT command')
+        if  self.tracker_type != "dummy":
+            ndiCommand(self.device, 'INIT:')
+            self._check_for_errors('Sending INIT command')
 
-        if self.tracker_type == "aurora" or self.tracker_type == "polaris":
-            ndiCommand(self.device,
-                       'COMM:{:d}{:03d}{:d}'
-                       .format(NDI_115200, NDI_8N1, NDI_NOHANDSHAKE))
+            if self.tracker_type in ("aurora", "polaris"):
+                ndiCommand(self.device,
+                           'COMM:{:d}{:03d}{:d}'
+                           .format(NDI_115200, NDI_8N1, NDI_NOHANDSHAKE))
 
-        self._read_sroms_from_file()
-        self._initialise_ports()
-        self._enable_tools()
+            self._read_sroms_from_file()
+            self._initialise_ports()
+            self._enable_tools()
 
     def _connect_network(self):
         self.device = ndiOpenNetwork(self.ip_address, self.port)
+        if not self.device:
+            raise IOError('Could not connect to network NDI device at {}'
+                          .format(self.ip_address))
 
     def _connect_serial(self):
         if self.serial_port == -1:
@@ -88,6 +96,9 @@ class NDITracker:
                 'group?)'.format(self.ports_to_probe))
 
         self.device = ndiOpen(name)
+        if not self.device:
+            raise IOError('Could not connect to serial NDI device at {}'
+                          .format(name))
 
     def _configure(self, configuration):
         """ Reads a configuration dictionary
@@ -168,12 +179,21 @@ class NDITracker:
 
     def close(self):
         """
-        Closes the connection to the NDI Tracker.
+        Closes the connection to the NDI Tracker and
+        deletes the tracker device.
+
+        raises: ValueError
         """
+        if not self.device:
+            raise ValueError('close called with no NDI device')
+
         if self.tracker_type == "vega":
             ndiCloseNetwork(self.device)
-        else:
+
+        if self.tracker_type in ("aurora", "polaris"):
             ndiClose(self.device)
+
+        self.device = None
 
     def _read_sroms_from_file(self):
         self.stop_tracking()
