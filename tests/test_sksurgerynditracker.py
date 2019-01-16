@@ -41,19 +41,25 @@ def test_connect():
 
 def test_connect_network():
     tracker = NDITracker()
-    with pytest.raises(OSError):
+    with pytest.raises(IOError):
         tracker.connect(SETTINGS_VEGA)
     with pytest.raises(ValueError):
         tracker.close()
 
 def test_connect_serial():
     tracker = NDITracker()
-    with pytest.raises(OSError):
+    with pytest.raises(IOError):
         tracker.connect(SETTINGS_POLARIS)
     with pytest.raises(ValueError):
         tracker.close()
 
 def test_configure():
+    tracker = NDITracker()
+    no_rom = {
+        "tracker type": "polaris",
+        }
+    with pytest.raises(KeyError):
+        tracker._configure(no_rom)
     #here we can pass a variety of configuration dictionaries and check that
     #performance is as expected.
     assert True
@@ -74,6 +80,7 @@ def test_config_polaris():
     assert True
 
 def test_close():
+
     with pytest.raises(ValueError):
         tracker = NDITracker()
         tracker.close()

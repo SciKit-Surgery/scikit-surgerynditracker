@@ -42,7 +42,7 @@ class NDITracker:
             romfiles:
             serial port:
 
-        raises: IOError
+        raises: IOError, KeyError
         """
         self._configure(configuration)
         if self.tracker_type == "vega":
