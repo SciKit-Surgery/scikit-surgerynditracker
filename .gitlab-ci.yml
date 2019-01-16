@@ -107,3 +107,33 @@ deploy docs to production:
     - public
   dependencies:
     - build docs
+
+deploy pip to PyPI:
+
+  stage: deploy
+  when: manual
+  #  only:
+  #  - tags
+
+  environment:
+    name: PyPI
+    url: https://test.pypi.python.org/pypi/sckit-surgerynditracker
+
+  tags:
+    - pip-production
+
+  artifacts:
+    paths:
+    - dist/
+
+  script:
+    # Install packages required to build/publish
+    # remove any previous distribution files
+    - pip install wheel twine setuptools
+    - rm -rf dist
+
+    # bundle installer
+    - python setup.py bdist_wheel
+
+    # Upload to pypi
+    - twine upload -repository-url https://test.pypi.org/legacy/ dist/* --username $PYPI_TEST_USER --password $PYPI_TEST_PASS
