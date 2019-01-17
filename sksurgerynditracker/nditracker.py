@@ -12,7 +12,7 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
                      ndiGetPHSRNumberOfHandles, ndiGetPHRQHandle,
                      ndiPVWRFromFile,
-                     ndiGetBXTransform,
+                     ndiGetBXTransform, ndiGetBXFrame,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE)
 
@@ -274,33 +274,46 @@ class NDITracker:
 
     def get_frame(self):
         """
-        Get's a frame of tracking data from the NDI device.
-        Each frame consists of a numpy array. The array has a
-        separate row for each tracked rigid body. Each
-        row contains:
+        Gets a frame of tracking data from the NDI device.
+
+        returns: A NumPy array. The array has a separate row for each tracked
+        rigid body. Each row contains:
             0: the port handle,
             1: time stamp
-            2-4: x,y,z coords,
-            5-8: the rotation as a quaternion.
-            9: the tracking quality.
+            2: the NDI devices frame number
+            3-5: x,y,z coords,
+            6-9: the rotation as a quaternion.
+            10: the tracking quality.
+
+        Note: The time stamp is based on the host computer clock. Read this
+        from NDI's API Guide:
+        "Use the frame number, and not the host computer clock, to identify when
+        data was collected. The frame number is incremented by 1 at a constant
+        rate of 60 Hz. Associating a time from the host computer clock to
+        replies from the system assumes that the duration of time between raw
+        data collection and when the reply is received by the host computer is
+        constant. This is not necessarily the case."
         """
-        transforms = full((len(self.tool_descriptors), 10), nan)
+        return_array = full((len(self.tool_descriptors), 11), nan)
+        timestamp = time()
         if not self.tracker_type == "dummy":
             ndiCommand(self.device, "BX:0801")
-
             for i in range(len(self.tool_descriptors)):
-                transforms[i, 0] = self.tool_descriptors[i].get("port handle")
-                transforms[i, 1] = time()
+                return_array[i, 0] = self.tool_descriptors[i].get("port handle")
+                return_array[i, 1] = timestamp
+                return_array[i, 2] = ndiGetBXFrame(
+                    self.device, int2byte(
+                        self.tool_descriptors[i].get("port handle")))
                 transform = ndiGetBXTransform(self.device,
                                               int2byte(self.tool_descriptors[i]
                                                        .get("port handle")))
                 if not transform == "MISSING" and not transform == "DISABLED":
-                    transforms[i, 2:10] = (transform)
+                    return_array[i, 3:11] = (transform)
         else:
             for i in range(len(self.tool_descriptors)):
-                transforms[i, 1] = time()
+                return_array[i, 1] = timestamp
 
-        return transforms
+        return return_array
 
     def get_tool_descriptions(self):
         """ Returns the port handles and tool descriptions """
