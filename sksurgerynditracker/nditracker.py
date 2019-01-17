@@ -4,6 +4,7 @@
 
 from platform import system
 from subprocess import call
+from time import time
 
 from six import int2byte
 from numpy import full, nan
@@ -17,8 +18,10 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
 
 
 class NDITracker:
-    """For NDI trackers, hopefully will support Polaris, Aurora,
-    and Vega, currently only tested with wireless tools on Vega
+    """
+    Class for communication with NDI trackers.
+    Should support Polaris, Aurora,
+    and Vega. Currently only tested with wireless tools on Vega
     """
     def __init__(self):
         """Create an instance ready for connecting."""
@@ -275,23 +278,27 @@ class NDITracker:
         Each frame consists of a numpy array. The array has a
         separate row for each tracked rigid body. Each
         row contains:
-            the port handle,
-            3 columns for x,y,z coords,
-            4 columns for the rotation as a quaternion.
-            1 column containing the tracking quality.
+            0: the port handle,
+            1: time stamp
+            2-4: x,y,z coords,
+            5-8: the rotation as a quaternion.
+            9: the tracking quality.
         """
-        #init a numpy array, it would be better if this inited NaN
-        transforms = full((len(self.tool_descriptors), 9), nan)
+        transforms = full((len(self.tool_descriptors), 10), nan)
         if not self.tracker_type == "dummy":
             ndiCommand(self.device, "BX:0801")
 
             for i in range(len(self.tool_descriptors)):
                 transforms[i, 0] = self.tool_descriptors[i].get("port handle")
+                transforms[i, 1] = time()
                 transform = ndiGetBXTransform(self.device,
                                               int2byte(self.tool_descriptors[i]
                                                        .get("port handle")))
                 if not transform == "MISSING" and not transform == "DISABLED":
-                    transforms[i, 1:9] = (transform)
+                    transforms[i, 2:10] = (transform)
+        else:
+            for i in range(len(self.tool_descriptors)):
+                transforms[i, 1] = time()
 
         return transforms
 
