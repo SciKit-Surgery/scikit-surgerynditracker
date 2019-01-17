@@ -1,6 +1,5 @@
 [run]
 omit = 
         ./sksurgerynditracker/_version.py
-        ./sksurgerynditracker/__init__.py
         ./sksurgerynditracker/example.py
 
