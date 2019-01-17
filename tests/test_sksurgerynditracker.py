@@ -122,7 +122,7 @@ def test_get_frame():
     tracker = NDITracker()
     tracker.connect(SETTINGS_DUMMY)
     data = tracker.get_frame()
-    assert data.shape == (0,9)
+    assert data.shape == (0,11)
     assert data.dtype == 'float64'
 
     dummy_two_rom = {
@@ -134,7 +134,7 @@ def test_get_frame():
 
     tracker.connect(dummy_two_rom)
     data = tracker.get_frame()
-    assert data.shape == (2,9)
+    assert data.shape == (2,11)
     assert data.dtype == 'float64'
 
 def test_get_tool_descriptions():

@@ -4,6 +4,7 @@
 
 from platform import system
 from subprocess import call
+from time import time
 
 from six import int2byte
 from numpy import full, nan
@@ -11,14 +12,16 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
                      ndiGetPHSRNumberOfHandles, ndiGetPHRQHandle,
                      ndiPVWRFromFile,
-                     ndiGetBXTransform,
+                     ndiGetBXTransform, ndiGetBXFrame,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE)
 
 
 class NDITracker:
-    """For NDI trackers, hopefully will support Polaris, Aurora,
-    and Vega, currently only tested with wireless tools on Vega
+    """
+    Class for communication with NDI trackers.
+    Should support Polaris, Aurora,
+    and Vega. Currently only tested with wireless tools on Vega
     """
     def __init__(self):
         """Create an instance ready for connecting."""
@@ -32,17 +35,21 @@ class NDITracker:
 
     def connect(self, configuration):
         """
-        Creates a NDI tracker devices and connects to an NDI Tracker.
+        Creates an NDI tracker devices and connects to an NDI Tracker.
 
-        :param configuration: A dictionary containing details of the
-        tracker.
+        :param configuration: A dictionary containing details of the tracker.
+
             tracker type: vega polaris aurora dummy
+
             ip address:
+
             port:
+
             romfiles:
+
             serial port:
 
-        raises: IOError, KeyError
+        :raise Exception: IOError, KeyError
         """
         self._configure(configuration)
         if self.tracker_type == "vega":
@@ -203,7 +210,7 @@ class NDITracker:
         Closes the connection to the NDI Tracker and
         deletes the tracker device.
 
-        raises: ValueError
+        :raise Exception: ValueError
         """
         if not self.device:
             raise ValueError('close called with no NDI device')
@@ -270,30 +277,51 @@ class NDITracker:
         ndiCommand(self.device, "PHSR:04")
 
     def get_frame(self):
+        """Gets a frame of tracking data from the NDI device.
+
+        :return: A NumPy array. One row per rigid body. Each row contains:
+
+            0: the port handle,
+
+            1: time stamp
+
+            2: the NDI devices frame number
+
+            3-5: x,y,z coords,
+
+            6-9: the rotation as a quaternion.
+
+            10: the tracking quality.
+
+        Note: The time stamp is based on the host computer clock. Read the
+        following extract from NDI's API Guide for advice on what to use:
+        "Use the frame number, and not the host computer clock, to identify when
+        data was collected. The frame number is incremented by 1 at a constant
+        rate of 60 Hz. Associating a time from the host computer clock to
+        replies from the system assumes that the duration of time between raw
+        data collection and when the reply is received by the host computer is
+        constant. This is not necessarily the case."
         """
-        Get's a frame of tracking data from the NDI device.
-        Each frame consists of a numpy array. The array has a
-        separate row for each tracked rigid body. Each
-        row contains:
-            the port handle,
-            3 columns for x,y,z coords,
-            4 columns for the rotation as a quaternion.
-            1 column containing the tracking quality.
-        """
-        #init a numpy array, it would be better if this inited NaN
-        transforms = full((len(self.tool_descriptors), 9), nan)
+        return_array = full((len(self.tool_descriptors), 11), nan)
+        timestamp = time()
         if not self.tracker_type == "dummy":
             ndiCommand(self.device, "BX:0801")
-
             for i in range(len(self.tool_descriptors)):
-                transforms[i, 0] = self.tool_descriptors[i].get("port handle")
+                return_array[i, 0] = self.tool_descriptors[i].get("port handle")
+                return_array[i, 1] = timestamp
+                return_array[i, 2] = ndiGetBXFrame(
+                    self.device, int2byte(
+                        self.tool_descriptors[i].get("port handle")))
                 transform = ndiGetBXTransform(self.device,
                                               int2byte(self.tool_descriptors[i]
                                                        .get("port handle")))
                 if not transform == "MISSING" and not transform == "DISABLED":
-                    transforms[i, 1:9] = (transform)
+                    return_array[i, 3:11] = (transform)
+        else:
+            for i in range(len(self.tool_descriptors)):
+                return_array[i, 1] = timestamp
 
-        return transforms
+        return return_array
 
     def get_tool_descriptions(self):
         """ Returns the port handles and tool descriptions """
@@ -308,7 +336,7 @@ class NDITracker:
     def start_tracking(self):
         """
         Tells the NDI devices to start tracking.
-        raises: ValueError
+        :raise Exception: ValueError
         """
         ndiCommand(self.device, 'TSTART:')
         self._check_for_errors('starting tracking.')
@@ -316,7 +344,7 @@ class NDITracker:
     def stop_tracking(self):
         """
         Tells the NDI devices to stop tracking.
-        raises: ValueError
+        :raise Exception: ValueError
         """
         ndiCommand(self.device, 'TSTOP:')
         self._check_for_errors('stopping tracking.')
