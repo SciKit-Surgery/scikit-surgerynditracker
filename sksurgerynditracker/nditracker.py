@@ -35,17 +35,21 @@ class NDITracker:
 
     def connect(self, configuration):
         """
-        Creates a NDI tracker devices and connects to an NDI Tracker.
+        Creates an NDI tracker devices and connects to an NDI Tracker.
 
-        :param configuration: A dictionary containing details of the
-        tracker.
+        :param configuration: A dictionary containing details of the tracker.
+
             tracker type: vega polaris aurora dummy
+
             ip address:
+
             port:
+
             romfiles:
+
             serial port:
 
-        raises: IOError, KeyError
+        :raise Exception: IOError, KeyError
         """
         self._configure(configuration)
         if self.tracker_type == "vega":
@@ -206,7 +210,7 @@ class NDITracker:
         Closes the connection to the NDI Tracker and
         deletes the tracker device.
 
-        raises: ValueError
+        :raise Exception: ValueError
         """
         if not self.device:
             raise ValueError('close called with no NDI device')
@@ -273,20 +277,24 @@ class NDITracker:
         ndiCommand(self.device, "PHSR:04")
 
     def get_frame(self):
-        """
-        Gets a frame of tracking data from the NDI device.
+        """Gets a frame of tracking data from the NDI device.
 
-        returns: A NumPy array. The array has a separate row for each tracked
-        rigid body. Each row contains:
+        :return: A NumPy array. One row per rigid body. Each row contains:
+
             0: the port handle,
+
             1: time stamp
+
             2: the NDI devices frame number
+
             3-5: x,y,z coords,
+
             6-9: the rotation as a quaternion.
+
             10: the tracking quality.
 
-        Note: The time stamp is based on the host computer clock. Read this
-        from NDI's API Guide:
+        Note: The time stamp is based on the host computer clock. Read the
+        following extract from NDI's API Guide for advice on what to use:
         "Use the frame number, and not the host computer clock, to identify when
         data was collected. The frame number is incremented by 1 at a constant
         rate of 60 Hz. Associating a time from the host computer clock to
@@ -328,7 +336,7 @@ class NDITracker:
     def start_tracking(self):
         """
         Tells the NDI devices to start tracking.
-        raises: ValueError
+        :raise Exception: ValueError
         """
         ndiCommand(self.device, 'TSTART:')
         self._check_for_errors('starting tracking.')
@@ -336,7 +344,7 @@ class NDITracker:
     def stop_tracking(self):
         """
         Tells the NDI devices to stop tracking.
-        raises: ValueError
+        :raise Exception: ValueError
         """
         ndiCommand(self.device, 'TSTOP:')
         self._check_for_errors('stopping tracking.')
