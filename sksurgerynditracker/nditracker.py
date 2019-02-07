@@ -80,6 +80,8 @@ class NDITracker:
 
     def _connect_aurora(self):
         self._connect_serial()
+        self._initialise_ports()
+        self._enable_tools()
 
     def _connect_network(self):
         #try and ping first to save time with timeouts
@@ -203,6 +205,14 @@ class NDITracker:
         """
         Internal function to check configuration of an aurora
         """
+        if "ports to use" not in configuration:
+            raise KeyError("Configuration for aurora must"
+                           "contain a list of 'ports to use'")
+
+        for port in configuration.get("ports to use"):
+            self.tool_descriptors.append({"description" : port,
+                                          "port handle" : port})
+
         if "serial port" in configuration:
             self.serial_port = configuration.get("serial port")
         else:
