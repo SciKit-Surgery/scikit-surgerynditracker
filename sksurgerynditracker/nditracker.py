@@ -13,6 +13,7 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiGetPHSRNumberOfHandles, ndiGetPHRQHandle,
                      ndiPVWRFromFile,
                      ndiGetBXTransform, ndiGetBXFrame,
+                     ndiGetGXTransform, ndiGetGXFrame,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE)
 
@@ -241,6 +242,8 @@ class NDITracker:
         if not self.device:
             raise ValueError('close called with no NDI device')
 
+        self.stop_tracking()
+
         if self.tracker_type == "vega":
             ndiCloseNetwork(self.device)
 
@@ -300,7 +303,6 @@ class NDITracker:
             self._check_for_errors('Enabling port handle {}.'
                                    .format(tool.get("port handle")))
 
-        ndiCommand(self.device, "PHSR:04")
 
     def get_frame(self):
         """Gets a frame of tracking data from the NDI device.
@@ -336,11 +338,11 @@ class NDITracker:
                 return_array[i, 0] = self.tool_descriptors[i].get("port handle")
                 return_array[i, 1] = timestamp
                 return_array[i, 2] = ndiGetBXFrame(
-                    self.device, int2byte(
-                        self.tool_descriptors[i].get("port handle")))
+                    self.device, bytes(
+                        str(self.tool_descriptors[i].get("port handle")),'utf-8'))
                 transform = ndiGetBXTransform(self.device,
-                                              int2byte(self.tool_descriptors[i]
-                                                       .get("port handle")))
+                                               bytes(str(self.tool_descriptors[i]
+                                                       .get("port handle")),'utf-8'))
                 if not transform == "MISSING" and not transform == "DISABLED":
                     return_array[i, 3:11] = (transform)
         else:
