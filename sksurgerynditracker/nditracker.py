@@ -6,7 +6,6 @@ from platform import system
 from subprocess import call
 from time import time
 
-from six import int2byte
 from numpy import full, nan
 from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
@@ -33,6 +32,9 @@ class NDITracker:
         self.port = None
         self.serial_port = None
         self.ports_to_probe = None
+        self.device_firmware_version = None
+        self.useBXTransforms = True
+        self.state = None
 
     def connect(self, configuration):
         """
@@ -64,6 +66,21 @@ class NDITracker:
 
         if self.tracker_type == "dummy":
             self.device = True
+
+        self._get_firmware_version()
+
+    def _get_firmware_version():
+        """
+        Gets the device's firmware version, and sets
+        self.device_firmware_version
+        """
+
+        """ this is what I got from our Aurora
+
+            'Aurora Control Firmware\nNDI S/N: B5-03023\nCharacterization Date: 2014-09-30\nFreeze Tag: AURORA Rev 007\nFreeze Date: 2011-04-19\n(C) Northern Digital Inc.\n'
+        """
+        version = ndiVER ( self.device , 0 )
+
 
     def _connect_vega(self):
         self._connect_network()
@@ -298,8 +315,8 @@ class NDITracker:
         ndiCommand(self.device, "PHSR:03")
         for tool in self.tool_descriptors:
             mode = 'D'
-            ndiCommand(self.device, "PENA:%02X%c", tool.get("port handle"),
-                       mode)
+            ndiCommand(self.device, "PENA:{02x}{}".format(tool.get("port handle"),
+                                                          mode))
             self._check_for_errors('Enabling port handle {}.'
                                    .format(tool.get("port handle")))
 
