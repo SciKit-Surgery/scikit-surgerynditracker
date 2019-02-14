@@ -24,6 +24,7 @@ SETTINGS_POLARIS = {
 
 SETTINGS_AURORA = {
         "tracker type": "aurora",
+        "ports to use": [1,2]
         }
 
 SETTINGS_DUMMY = {
@@ -81,15 +82,18 @@ def test_configure():
         }
     tracker._configure(no_port)
 
-    aurora = { "tracker type": "aurora" }
+    aurora = { "tracker type": "aurora",
+               "ports to use": [1,2]}
     tracker._configure(aurora)
 
     aurora_sp = { "tracker type": "aurora",
-            "serial_port": "1"}
+                  "serial_port": "1",
+                  "ports to use": [1,2]}
     tracker._configure(aurora_sp)
 
     aurora_np = { "tracker type": "aurora",
-            "ports to probe": "50"}
+                  "ports to probe": "50",
+                  "ports to use": [1,2]}
     tracker._configure(aurora_np)
 
 def test_close():
