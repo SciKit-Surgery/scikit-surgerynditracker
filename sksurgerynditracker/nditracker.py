@@ -5,7 +5,6 @@
 from platform import system
 from subprocess import call
 from time import time
-from ctypes import c_char_p
 
 from numpy import full, nan
 from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
@@ -34,8 +33,8 @@ class NDITracker:
         self.port = None
         self.serial_port = None
         self.ports_to_probe = None
-        self.device_firmware_version = None
-        self._use_bx_transforms = True
+        self._device_firmware_version = None
+        self._use_bx_transforms = None
         self._state = None
 
     def connect(self, configuration):
@@ -70,6 +69,18 @@ class NDITracker:
             self.device = True
 
         self._get_firmware_version()
+        self._set_use_bx_transforms()
+
+    def _set_use_bx_transforms(self):
+        """
+        We'd like to use BX transforms as this sends binary
+        tracking data, so should be faster, however for
+        certain devices we can't do this. Here we check the
+        firmware version and set _use_bx_transforms to suit.
+        """
+        self._use_bx_transforms = True
+        if self._device_firmware_version == ' AURORA Rev 007':
+            self._use_bx_transforms = False
 
     def _get_firmware_version(self):
         """
@@ -77,20 +88,13 @@ class NDITracker:
         self.device_firmware_version
         """
 
-        """ this is what I got from our Aurora
+        self._device_firmware_version = 'unknown 00.0'
 
-            'Aurora Control Firmware\n
-            NDI S/N: B5-03023\n
-            Characterization Date: 2014-09-30\n
-            Freeze Tag: AURORA Rev 007\n
-            Freeze Date: 2011-04-19\n
-            (C) Northern Digital Inc.\n'
-        """
-        if self.tracker_type == "dummy":
-            version = "DUMMY 00.0"
-        else:
-            version = ndiVER(self.device, 0)
-
+        if self.tracker_type != 'dummy':
+            device_info = ndiVER(self.device, 0).split('\n')
+            for line in device_info:
+                if line.startswith('Freeze Tag:'):
+                    self._device_firmware_version = line.split(':')[1]
 
     def _connect_vega(self):
         self._connect_network()
@@ -240,7 +244,8 @@ class NDITracker:
         for port in configuration.get("ports to use"):
             self.tool_descriptors.append({"description" : port,
                                           "port handle" : port,
-                                          "c_str port handle" : c_char_p(port)})
+                                          "c_str port handle" :
+                                          str(port).encode()})
 
         if "serial port" in configuration:
             self.serial_port = configuration.get("serial port")
@@ -300,7 +305,7 @@ class NDITracker:
             ndiCommand(self.device, 'PHRQ:*********1****')
             port_handle = ndiGetPHRQHandle(self.device)
             tool.update({"port handle" : port_handle})
-            tool.update({"c_str port handle" : c_char_p(port_handle)})
+            tool.update({"c_str port handle" : str(port_handle).encode()})
 
             self._check_for_errors('getting srom file port handle {}.'
                                    .format(port_handle))
@@ -330,7 +335,7 @@ class NDITracker:
         ndiCommand(self.device, "PHSR:03")
         for tool in self.tool_descriptors:
             mode = 'D'
-            ndiCommand(self.device, "PENA:{0:02x}{1:c}"
+            ndiCommand(self.device, "PENA:{0:02x}{1}"
                        .format(tool.get("port handle"), mode))
             self._check_for_errors('Enabling port handle {}.'
                                    .format(tool.get("port handle")))
@@ -362,6 +367,14 @@ class NDITracker:
         data collection and when the reply is received by the host computer is
         constant. This is not necessarily the case."
         """
+        if self._use_bx_transforms:
+            frame = self._get_frame_bx()
+        else:
+            frame = self._get_frame_gx()
+
+        return frame
+
+    def _get_frame_bx(self):
         return_array = full((len(self.tool_descriptors), 11), nan)
         timestamp = time()
         if not self.tracker_type == "dummy":
@@ -383,6 +396,29 @@ class NDITracker:
 
         return return_array
 
+    def _get_frame_gx(self):
+        return_array = full((len(self.tool_descriptors), 11), nan)
+        timestamp = time()
+        if not self.tracker_type == "dummy":
+            ndiCommand(self.device, "GX:0801")
+            for i in range(len(self.tool_descriptors)):
+                return_array[i, 0] = self.tool_descriptors[i].get("port handle")
+                return_array[i, 1] = timestamp
+                return_array[i, 2] = ndiGetGXFrame(
+                    self.device,
+                    self.tool_descriptors[i].get("c_str port handle"))
+                transform = ndiGetGXTransform(
+                    self.device,
+                    self.tool_descriptors[i].get("c_str port handle"))
+                if not transform == "MISSING" and not transform == "DISABLED":
+                    return_array[i, 3:11] = (transform)
+        else:
+            for i in range(len(self.tool_descriptors)):
+                return_array[i, 1] = timestamp
+
+        return return_array
+
+
     def get_tool_descriptions(self):
         """ Returns the port handles and tool descriptions """
         descriptions = full((len(self.tool_descriptors), 2), "empty",
@@ -400,6 +436,7 @@ class NDITracker:
         """
         ndiCommand(self.device, 'TSTART:')
         self._check_for_errors('starting tracking.')
+        self._state = 'tracking'
 
     def stop_tracking(self):
         """
@@ -408,6 +445,7 @@ class NDITracker:
         """
         ndiCommand(self.device, 'TSTOP:')
         self._check_for_errors('stopping tracking.')
+        self._state = 'ready'
 
     def _check_for_errors(self, message):
         errnum = ndiGetError(self.device)
