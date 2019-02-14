@@ -6,6 +6,7 @@ from platform import system
 from subprocess import call
 from time import time
 
+from six import int2byte
 from numpy import full, nan
 from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
@@ -305,7 +306,10 @@ class NDITracker:
             ndiCommand(self._device, 'PHRQ:*********1****')
             port_handle = ndiGetPHRQHandle(self._device)
             tool.update({"port handle" : port_handle})
-            tool.update({"c_str port handle" : str(port_handle).encode()})
+            if self._tracker_type == "vega":
+                tool.update({"c_str port handle" : int2byte(port_handle)})
+            else:
+                tool.update({"c_str port handle" : str(port_handle).encode()})
 
             self._check_for_errors('getting srom file port handle {}.'
                                    .format(port_handle))
