@@ -245,9 +245,9 @@ class NDITracker:
 
         for port in configuration.get("ports to use"):
             self._tool_descriptors.append({"description" : port,
-                                          "port handle" : port,
-                                          "c_str port handle" :
-                                          str(port).encode()})
+                                           "port handle" : port,
+                                           "c_str port handle" :
+                                           str(port).encode()})
 
         if "serial port" in configuration:
             self._serial_port = configuration.get("serial port")
@@ -386,7 +386,8 @@ class NDITracker:
         if not self._tracker_type == "dummy":
             ndiCommand(self._device, "BX:0801")
             for i in range(len(self._tool_descriptors)):
-                return_array[i, 0] = self._tool_descriptors[i].get("port handle")
+                return_array[i, 0] = self._tool_descriptors[i].get(
+                    "port handle")
                 return_array[i, 1] = timestamp
                 return_array[i, 2] = ndiGetBXFrame(
                     self._device,
@@ -408,7 +409,8 @@ class NDITracker:
         if not self._tracker_type == "dummy":
             ndiCommand(self._device, "GX:0801")
             for i in range(len(self._tool_descriptors)):
-                return_array[i, 0] = self._tool_descriptors[i].get("port handle")
+                return_array[i, 0] = self._tool_descriptors[i].get(
+                    "port handle")
                 return_array[i, 1] = timestamp
                 return_array[i, 2] = ndiGetGXFrame(
                     self._device,
@@ -440,7 +442,7 @@ class NDITracker:
         Tells the NDI devices to start tracking.
         :raise Exception: ValueError
         """
-        if ( self._state != 'ready' ):
+        if self._state != 'ready':
             raise ValueError("""Called start tracking before device ready,
             try calling connect first""")
 
