@@ -71,6 +71,7 @@ class NDITracker:
 
         self._get_firmware_version()
         self._set_use_bx_transforms()
+        self._state = 'ready'
 
     def _set_use_bx_transforms(self):
         """
@@ -286,6 +287,7 @@ class NDITracker:
             ndiClose(self._device)
 
         self._device = None
+        self._state = None
 
     def _read_sroms_from_file(self):
         if not self._device:
@@ -438,6 +440,10 @@ class NDITracker:
         Tells the NDI devices to start tracking.
         :raise Exception: ValueError
         """
+        if ( self._state != 'ready' ):
+            raise ValueError("""Called start tracking before device ready,
+            try calling connect first""")
+
         ndiCommand(self._device, 'TSTART:')
         self._check_for_errors('starting tracking.')
         self._state = 'tracking'
