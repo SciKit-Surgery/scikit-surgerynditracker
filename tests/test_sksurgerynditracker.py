@@ -23,8 +23,7 @@ SETTINGS_POLARIS = {
         }
 
 SETTINGS_AURORA = {
-        "tracker type": "aurora",
-        "ports to use": [1,2]
+        "tracker type": "aurora"
         }
 
 SETTINGS_DUMMY = {
@@ -82,18 +81,15 @@ def test_configure():
         }
     tracker._configure(no_port)
 
-    aurora = { "tracker type": "aurora",
-               "ports to use": [1,2]}
+    aurora = { "tracker type": "aurora" }
     tracker._configure(aurora)
 
     aurora_sp = { "tracker type": "aurora",
-                  "serial_port": "1",
-                  "ports to use": [1,2]}
+                  "serial_port": "1" }
     tracker._configure(aurora_sp)
 
     aurora_np = { "tracker type": "aurora",
-                  "ports to probe": "50",
-                  "ports to use": [1,2]}
+                  "ports to probe": "50" }
     tracker._configure(aurora_np)
 
 def test_close():
@@ -110,17 +106,19 @@ def test_read_sroms_from_file():
 
 def test_initialise_ports():
     tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker._device = None
     with pytest.raises(ValueError):
         tracker._initialise_ports()
-    tracker.close()
+    with pytest.raises(ValueError):
+        tracker.close()
 
 def test_enable_tools():
     tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker._device = None
     with pytest.raises(ValueError):
         tracker._enable_tools()
-    tracker.close()
+    with pytest.raises(ValueError):
+        tracker.close()
 
 def test_get_frame():
     tracker = NDITracker()

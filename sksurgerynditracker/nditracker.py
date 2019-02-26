@@ -10,8 +10,8 @@ from six import int2byte
 from numpy import full, nan
 from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
-                     ndiGetPHSRNumberOfHandles, ndiGetPHRQHandle,
-                     ndiPVWRFromFile,
+                     ndiGetPHSRNumberOfHandles, ndiGetPHSRHandle,
+                     ndiGetPHRQHandle, ndiPVWRFromFile,
                      ndiGetBXTransform, ndiGetBXFrame,
                      ndiGetGXTransform, ndiGetGXFrame,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
@@ -69,6 +69,8 @@ class NDITracker:
         if self._tracker_type == "dummy":
             self._device = True
 
+        self._initialise_ports()
+        self._enable_tools()
         self._get_firmware_version()
         self._set_use_bx_transforms()
         self._state = 'ready'
@@ -100,22 +102,15 @@ class NDITracker:
 
     def _connect_vega(self):
         self._connect_network()
-
         self._read_sroms_from_file()
-        self._initialise_ports()
-        self._enable_tools()
 
     def _connect_polaris(self):
         self._connect_serial()
-
         self._read_sroms_from_file()
-        self._initialise_ports()
-        self._enable_tools()
 
     def _connect_aurora(self):
         self._connect_serial()
-        self._initialise_ports()
-        self._enable_tools()
+        self._find_wired_ports()
 
     def _connect_network(self):
         #try and ping first to save time with timeouts
@@ -239,16 +234,6 @@ class NDITracker:
         """
         Internal function to check configuration of an aurora
         """
-        if "ports to use" not in configuration:
-            raise KeyError("Configuration for aurora must"
-                           "contain a list of 'ports to use'")
-
-        for port in configuration.get("ports to use"):
-            self._tool_descriptors.append({"description" : port,
-                                           "port handle" : port,
-                                           "c_str port handle" :
-                                           str(port).encode()})
-
         if "serial port" in configuration:
             self._serial_port = configuration.get("serial port")
         else:
@@ -324,27 +309,47 @@ class NDITracker:
         ndiCommand(self._device, 'PHSR:01')
 
     def _initialise_ports(self):
+        """Initialises each port in the list of tool descriptors"""
         if not self._device:
             raise ValueError('init ports called with no NDI device')
 
+        if not self._tracker_type == "dummy":
+            ndiCommand(self._device, 'PHSR:02')
+            for tool in self._tool_descriptors:
+                ndiCommand(self._device, "PINIT:{0:02x}"
+                           .format(tool.get("port handle")))
+                self._check_for_errors('Initialising port handle {0:02x}.'
+                                       .format(tool.get("port handle")))
+
+    def _find_wired_ports(self):
+        """For systems with wired tools, gets the number of tools plugged in
+        and sticks them in the tool descriptors list"""
+        if not self._device:
+            raise ValueError('find wired ports called with no NDI device')
+
         ndiCommand(self._device, 'PHSR:02')
-        for tool in self._tool_descriptors:
-            ndiCommand(self._device, "PINIT:{0:02x}"
-                       .format(tool.get("port handle")))
-            self._check_for_errors('Initialising port handle {0:02x}.'
-                                   .format(tool.get("port handle")))
+        number_of_tools = ndiGetPHSRNumberOfHandles(self._device)
+        while number_of_tools > 0:
+            for ndi_tool_index in range(number_of_tools):
+                port_handle = ndiGetPHSRHandle(self._device, ndi_tool_index)
+
+                self._tool_descriptors.append({"description" : port_handle,
+                                               "port handle" : port_handle,
+                                               "c_str port handle" :
+                                               str(port_handle).encode()})
 
     def _enable_tools(self):
         if not self._device:
             raise ValueError('enable tools called with no NDI device')
 
-        ndiCommand(self._device, "PHSR:03")
-        for tool in self._tool_descriptors:
-            mode = 'D'
-            ndiCommand(self._device, "PENA:{0:02x}{1}"
-                       .format(tool.get("port handle"), mode))
-            self._check_for_errors('Enabling port handle {}.'
-                                   .format(tool.get("port handle")))
+        if not self._tracker_type == "dummy":
+            ndiCommand(self._device, "PHSR:03")
+            for tool in self._tool_descriptors:
+                mode = 'D'
+                ndiCommand(self._device, "PENA:{0:02x}{1}"
+                           .format(tool.get("port handle"), mode))
+                self._check_for_errors('Enabling port handle {}.'
+                                       .format(tool.get("port handle")))
 
 
     def get_frame(self):
