@@ -13,7 +13,7 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiGetPHSRNumberOfHandles, ndiGetPHSRHandle,
                      ndiGetPHRQHandle, ndiPVWRFromFile,
                      ndiGetBXTransform, ndiGetBXFrame,
-                     ndiGetGXTransform, ndiGetGXFrame,
+                     ndiGetTXTransform, ndiGetTXFrame,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE,
                      ndiVER)
@@ -85,6 +85,11 @@ class NDITracker:
         self._use_bx_transforms = True
         if self._device_firmware_version == ' AURORA Rev 007':
             self._use_bx_transforms = False
+            return
+        if self._device_firmware_version == ' AURORA Rev 008':
+            self._use_bx_transforms = False
+            return
+        return
 
     def _get_firmware_version(self):
         """
@@ -397,7 +402,7 @@ class NDITracker:
         if self._use_bx_transforms:
             frame = self._get_frame_bx()
         else:
-            frame = self._get_frame_gx()
+            frame = self._get_frame_tx()
 
         return frame
 
@@ -424,19 +429,19 @@ class NDITracker:
 
         return return_array
 
-    def _get_frame_gx(self):
+    def _get_frame_tx(self):
         return_array = full((len(self._tool_descriptors), 11), nan)
         timestamp = time()
         if not self._tracker_type == "dummy":
-            ndiCommand(self._device, "GX:0801")
+            ndiCommand(self._device, "TX:0801")
             for i in range(len(self._tool_descriptors)):
                 return_array[i, 0] = self._tool_descriptors[i].get(
                     "port handle")
                 return_array[i, 1] = timestamp
-                return_array[i, 2] = ndiGetGXFrame(
+                return_array[i, 2] = ndiGetTXFrame(
                     self._device,
                     self._tool_descriptors[i].get("c_str port handle"))
-                transform = ndiGetGXTransform(
+                transform = ndiGetTXTransform(
                     self._device,
                     self._tool_descriptors[i].get("c_str port handle"))
                 if not transform == "MISSING" and not transform == "DISABLED":
@@ -446,7 +451,6 @@ class NDITracker:
                 return_array[i, 1] = timestamp
 
         return return_array
-
 
     def get_tool_descriptions(self):
         """ Returns the port handles and tool descriptions """
