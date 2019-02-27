@@ -333,10 +333,13 @@ class NDITracker:
             for ndi_tool_index in range(number_of_tools):
                 port_handle = ndiGetPHSRHandle(self._device, ndi_tool_index)
 
-                self._tool_descriptors.append({"description" : port_handle,
+                self._tool_descriptors.append({"description" : ndi_tool_index,
                                                "port handle" : port_handle,
                                                "c_str port handle" :
-                                               str(port_handle).encode()})
+                                               int2byte(port_handle)})
+                ndiCommand(self._device, "PINIT:{0:02x}".format(port_handle))
+            ndiCommand(self._device, 'PHSR:02')
+            number_of_tools = ndiGetPHSRNumberOfHandles(self._device)
 
     def _enable_tools(self):
         if not self._device:
@@ -344,13 +347,26 @@ class NDITracker:
 
         if not self._tracker_type == "dummy":
             ndiCommand(self._device, "PHSR:03")
-            for tool in self._tool_descriptors:
+            number_of_tools = ndiGetPHSRNumberOfHandles(self._device)
+            for tool_index in range(number_of_tools):
+                port_handle = ndiGetPHSRHandle(self._device, tool_index)
+                port_handle_already_present = False
+                for tool in self._tool_descriptors:
+                    if tool.get("port handle") == port_handle:
+                        port_handle_already_present = True
+                        break
+                if not port_handle_already_present:
+                    self._tool_descriptors.append({
+                        "description" : tool_index,
+                        "port handle" : port_handle,
+                        "c_str port handle" :
+                        int2byte(port_handle)})
+
                 mode = 'D'
                 ndiCommand(self._device, "PENA:{0:02x}{1}"
-                           .format(tool.get("port handle"), mode))
+                           .format(port_handle, mode))
                 self._check_for_errors('Enabling port handle {}.'
-                                       .format(tool.get("port handle")))
-
+                                       .format(port_handle))
 
     def get_frame(self):
         """Gets a frame of tracking data from the NDI device.

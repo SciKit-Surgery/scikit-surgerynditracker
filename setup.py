@@ -52,7 +52,7 @@ setup(
     install_requires=[
         'six>=1.10',
         'numpy>=1.11',
-        'ndicapi>=3.2.1',
+        'ndicapi>=3.2.2',
     ],
 
     entry_points={
