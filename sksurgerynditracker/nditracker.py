@@ -37,6 +37,7 @@ class NDITracker:
         self._device_firmware_version = None
         self._use_bx_transforms = None
         self._state = None
+        self._use_quaternions = None
 
     def connect(self, configuration):
         """
@@ -196,6 +197,11 @@ class NDITracker:
 
         if self._tracker_type == "dummy":
             self._config_dummy(configuration)
+
+        if "use quaternions" in configuration:
+            self._use_quaternions = configuration.get("use quaternions")
+        else:
+            self._use_quaternions = False
 
     def _config_vega(self, configuration):
         """
@@ -376,19 +382,19 @@ class NDITracker:
     def get_frame(self):
         """Gets a frame of tracking data from the NDI device.
 
-        :return: A NumPy array. One row per rigid body. Each row contains:
+        :return:
 
-            0: the port handle,
+            port_numbers : list of port handles, one per tool
 
-            1: time stamp
+            time_stamps : list of timestamps (cpu clock), one per tool
 
-            2: the NDI devices frame number
+            frame_numbers : list of framenumbers (tracker clock) one per tool
 
-            3-5: x,y,z coords,
+            tracking : list of 4x4 tracking matrices, rotation and position,
+            or if use_quaternions is true, a list of tracking quaternions,
+            column 0-2 is x,y,z column 3-6 is the rotation as a quaternion.
 
-            6-9: the rotation as a quaternion.
-
-            10: the tracking quality.
+            tracking_quality : list the tracking quality, one per tool.
 
         Note: The time stamp is based on the host computer clock. Read the
         following extract from NDI's API Guide for advice on what to use:
