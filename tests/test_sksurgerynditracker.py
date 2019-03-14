@@ -35,77 +35,82 @@ def test_connect():
     #What testing can we do when we are attached to a tracker?
     #We could build a fake ndi tracker, that listens on a port
     #and responds appropriately.
-    tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker = NDITracker(SETTINGS_DUMMY)
     tracker.close()
 
 def test_connect_network():
-    tracker = NDITracker()
     with pytest.raises(IOError):
-        tracker.connect(SETTINGS_VEGA)
-    with pytest.raises(ValueError):
-        tracker.close()
+        tracker = NDITracker(SETTINGS_VEGA)
+        del tracker
 
 def test_connect_serial():
-    tracker = NDITracker()
+    tracker = None
     with pytest.raises(IOError):
-        tracker.connect(SETTINGS_POLARIS)
-    with pytest.raises(ValueError):
-        tracker.close()
+        tracker = NDITracker(SETTINGS_POLARIS)
+        del tracker
 
 def test_configure():
-    tracker = NDITracker()
     no_rom = {
         "tracker type": "polaris",
         }
     with pytest.raises(KeyError):
-        tracker._configure(no_rom)
+        tracker = NDITracker(no_rom)
+        del tracker
 
     bad_tracker = {
         "tracker type": "optotrack",
         }
     with pytest.raises(ValueError):
-        tracker._configure(bad_tracker)
+        tracker = NDITracker (bad_tracker)
+        del tracker
 
     no_ip = {
         "tracker type": "vega",
         "romfiles": "[rom]"
         }
     with pytest.raises(KeyError):
-        tracker._configure(no_ip)
+        tracker = NDITracker(no_ip)
+        del tracker
 
-    no_port = {
-        "tracker type": "vega",
-        "ip address": "tracker",
-        "romfiles": "[rom]"
-        }
-    tracker._configure(no_port)
+    with pytest.raises(IOError) or pytest.raises(OSError):
+        no_port = {
+            "tracker type": "vega",
+            "ip address": "tracker",
+            "romfiles": "[rom]"
+            }
+        tracker = NDITracker(no_port)
+        del tracker
 
-    aurora = { "tracker type": "aurora" }
-    tracker._configure(aurora)
+    with pytest.raises(IOError) or pytest.raises(OSError):
+        aurora = { "tracker type": "aurora" }
+        tracker = NDITracker(aurora)
+        del tracker
 
-    aurora_sp = { "tracker type": "aurora",
-                  "serial_port": "1" }
-    tracker._configure(aurora_sp)
+    with pytest.raises(IOError) or pytest.raises(OSError):
+        aurora_sp = { "tracker type": "aurora",
+                      "serial_port": "1" }
+        tracker = NDITracker(aurora_sp)
+        del tracker
 
-    aurora_np = { "tracker type": "aurora",
-                  "ports to probe": "50" }
-    tracker._configure(aurora_np)
+    with pytest.raises(IOError) or pytest.raises(OSError):
+        aurora_np = { "tracker type": "aurora",
+                      "ports to probe": "50" }
+        tracker = NDITracker(aurora_np)
+        del tracker
 
 def test_close():
-    with pytest.raises(ValueError):
-        tracker = NDITracker()
-        tracker.close()
+    tracker = NDITracker(SETTINGS_DUMMY)
+    tracker.close()
+    del tracker
 
 def test_read_sroms_from_file():
-    tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker = NDITracker(SETTINGS_DUMMY)
     with pytest.raises(ValueError):
         tracker._read_sroms_from_file()
     tracker.close()
 
 def test_initialise_ports():
-    tracker = NDITracker()
+    tracker = NDITracker(SETTINGS_DUMMY)
     tracker._device = None
     with pytest.raises(ValueError):
         tracker._initialise_ports()
@@ -113,7 +118,7 @@ def test_initialise_ports():
         tracker.close()
 
 def test_enable_tools():
-    tracker = NDITracker()
+    tracker = NDITracker(SETTINGS_DUMMY)
     tracker._device = None
     with pytest.raises(ValueError):
         tracker._enable_tools()
@@ -121,13 +126,13 @@ def test_enable_tools():
         tracker.close()
 
 def test_get_frame():
-    tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker = NDITracker(SETTINGS_DUMMY)
     port_handles, timestamps, framenumbers, \
         tracking, tracking_quality = tracker.get_frame()
 
     assert len(tracking) == 0
 
+    del tracker
     dummy_two_rom = {
         "tracker type": "dummy",
         "romfiles" : [
@@ -135,7 +140,7 @@ def test_get_frame():
             "../data/8700339.rom"]
         }
 
-    tracker.connect(dummy_two_rom)
+    tracker = NDITracker(dummy_two_rom)
     port_handles, timestamps, framenumbers, \
         tracking, tracking_quality = tracker.get_frame()
     assert len(tracking) == 2
@@ -143,10 +148,10 @@ def test_get_frame():
     assert tracking[0].dtype == 'float64'
 
 def test_get_tool_descriptions():
-    tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker = NDITracker(SETTINGS_DUMMY)
     descriptions = tracker.get_tool_descriptions()
     assert len(descriptions) == 0
+    del tracker
 
     dummy_two_rom = {
         "tracker type": "dummy",
@@ -155,27 +160,24 @@ def test_get_tool_descriptions():
             "../data/8700339.rom"]
         }
 
-    tracker.connect(dummy_two_rom)
+    tracker = NDITracker(dummy_two_rom)
     descriptions = tracker.get_tool_descriptions()
     assert len(descriptions) == 2
 
 def test_start_tracking():
-    tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker = NDITracker(SETTINGS_DUMMY)
     with pytest.raises(ValueError):
         tracker.start_tracking()
     tracker.close()
 
 def test_stop_tracking():
-    tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker = NDITracker(SETTINGS_DUMMY)
     with pytest.raises(ValueError):
         tracker.stop_tracking()
     tracker.close()
 
 def test_check_for_errors():
-    tracker = NDITracker()
-    tracker.connect(SETTINGS_DUMMY)
+    tracker = NDITracker(SETTINGS_DUMMY)
     with pytest.raises(ValueError):
         tracker._check_for_errors("dummy error")
     tracker.close()

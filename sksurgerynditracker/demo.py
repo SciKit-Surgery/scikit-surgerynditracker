@@ -36,8 +36,7 @@ def run():
             "../data/8700339.rom",
             "../data/something_else.rom"]
         }
-    tracker = NDITracker()
-    tracker.connect(settings_vega)
+    tracker = NDITracker(settings_vega)
 
     tracker.start_tracking()
 

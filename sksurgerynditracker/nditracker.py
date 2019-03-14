@@ -34,19 +34,7 @@ class NDITracker:
     Should support Polaris, Aurora,
     and Vega. Currently only tested with wireless tools on Vega
     """
-    def __init__(self):
-        """Create an instance ready for connecting."""
-        self._device = None
-        self._tool_descriptors = []
-        self._tracker_type = None
-        self._state = None
-        self._use_quaternions = None
-
-        self._get_frame = None
-        self._get_transform = None
-        self._capture_string = None
-
-    def connect(self, configuration):
+    def __init__(self, configuration):
         """
         Creates an NDI tracker devices and connects to an NDI Tracker.
 
@@ -64,8 +52,18 @@ class NDITracker:
 
             ports to probe:
 
-        :raise Exception: IOError, KeyError
+        :raise Exception: IOError, KeyError, OSError
         """
+        self._device = None
+        self._tool_descriptors = []
+        self._tracker_type = None
+        self._state = None
+        self._use_quaternions = None
+
+        self._get_frame = None
+        self._get_transform = None
+        self._capture_string = None
+
         self._configure(configuration)
         if self._tracker_type == "vega":
             self._connect_vega(configuration)
