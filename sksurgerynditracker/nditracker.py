@@ -40,7 +40,6 @@ class NDITracker:
         self._device = None
         self._tool_descriptors = []
         self._tracker_type = None
-        self._device_firmware_version = None
         self._use_bx_transforms = None
         self._state = None
         self._use_quaternions = None
@@ -92,10 +91,11 @@ class NDITracker:
         firmware version and set _use_bx_transforms to suit.
         """
         self._use_bx_transforms = True
-        if self._device_firmware_version == ' AURORA Rev 007':
+        firmware = self._get_firmware_version()
+        if firmware == ' AURORA Rev 007':
             self._use_bx_transforms = False
             return
-        if self._device_firmware_version == ' AURORA Rev 008':
+        if firmware == ' AURORA Rev 008':
             self._use_bx_transforms = False
             return
         return
@@ -106,13 +106,14 @@ class NDITracker:
         self._device_firmware_version
         """
 
-        self._device_firmware_version = 'unknown 00.0'
+        device_firmware_version = 'unknown 00.0'
 
         if self._tracker_type != 'dummy':
             device_info = ndiVER(self._device, 0).split('\n')
             for line in device_info:
                 if line.startswith('Freeze Tag:'):
-                    self._device_firmware_version = line.split(':')[1]
+                    device_firmware_version = line.split(':')[1]
+        return device_firmware_version
 
     def _connect_vega(self, configuration):
         self._connect_network(configuration)
