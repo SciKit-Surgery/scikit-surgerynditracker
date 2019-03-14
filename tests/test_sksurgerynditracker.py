@@ -123,9 +123,10 @@ def test_enable_tools():
 def test_get_frame():
     tracker = NDITracker()
     tracker.connect(SETTINGS_DUMMY)
-    data = tracker.get_frame()
-    assert data.shape == (0,11)
-    assert data.dtype == 'float64'
+    port_handles, timestamps, framenumbers, \
+        tracking, tracking_quality = tracker.get_frame()
+
+    assert len(tracking) == 0
 
     dummy_two_rom = {
         "tracker type": "dummy",
@@ -135,9 +136,11 @@ def test_get_frame():
         }
 
     tracker.connect(dummy_two_rom)
-    data = tracker.get_frame()
-    assert data.shape == (2,11)
-    assert data.dtype == 'float64'
+    port_handles, timestamps, framenumbers, \
+        tracking, tracking_quality = tracker.get_frame()
+    assert len(tracking) == 2
+    assert tracking[0].shape == (4,4)
+    assert tracking[0].dtype == 'float64'
 
 def test_get_tool_descriptions():
     tracker = NDITracker()

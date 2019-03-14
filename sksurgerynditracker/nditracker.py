@@ -14,7 +14,7 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiGetPHRQHandle, ndiPVWRFromFile,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE,
-                     ndiVER)
+                     ndiVER, ndiTransformToMatrixd)
 import ndicapy
 
 def _check_config_aurora(configuration):
@@ -400,27 +400,53 @@ class NDITracker:
         data collection and when the reply is received by the host computer is
         constant. This is not necessarily the case."
         """
-        return_array = full((len(self._tool_descriptors), 11), nan)
+        port_handles = []
+        time_stamps = []
+        frame_numbers = []
+        tracking = []
+        tracking_quality = []
+
         timestamp = time()
         if not self._tracker_type == "dummy":
             ndiCommand(self._device, self._capture_string)
             for i in range(len(self._tool_descriptors)):
-                return_array[i, 0] = self._tool_descriptors[i].get(
-                    "port handle")
-                return_array[i, 1] = timestamp
-                return_array[i, 2] = self._get_frame(
+                port_handles.append(self._tool_descriptors[i].get(
+                    "port handle"))
+                time_stamps.append(timestamp)
+                frame_numbers.append(self._get_frame(
+                    self._device,
+                    self._tool_descriptors[i].get("c_str port handle")))
+                qtransform = self._get_transform(
                     self._device,
                     self._tool_descriptors[i].get("c_str port handle"))
-                transform = self._get_transform(
-                    self._device,
-                    self._tool_descriptors[i].get("c_str port handle"))
-                if not transform == "MISSING" and not transform == "DISABLED":
-                    return_array[i, 3:11] = (transform)
+                tracking_quality.append(qtransform[7])
+                if not qtransform == "MISSING" and not transform == "DISABLED":
+                    if not self._use_quaternions:
+                        transform = ndiTransformToMatrixd(qtransform)
+                    else:
+                        transform = qtransform[0:6]
+                else:
+                    if not self._use_quaternions:
+                        transform = full((4, 4), nan)
+                    else:
+                        transform = full((1, 7), nan)
+
+                tracking.append(transform)
+
         else:
             for i in range(len(self._tool_descriptors)):
-                return_array[i, 1] = timestamp
+                port_handles.append(self._tool_descriptors[i].get(
+                    "port handle"))
+                time_stamps.append(timestamp)
+                frame_numbers.append(0)
+                tracking_quality.append(0.0)
+                if not self._use_quaternions:
+                    tracking.append(full((4, 4), nan))
+                else:
+                    tracking.append(full((1, 7), nan))
 
-        return return_array
+        return port_handles, time_stamps, frame_numbers, tracking, \
+                tracking_quality
 
     def get_tool_descriptions(self):
         """ Returns the port handles and tool descriptions """
