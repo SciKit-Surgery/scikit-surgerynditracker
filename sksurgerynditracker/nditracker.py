@@ -7,7 +7,7 @@ from subprocess import call
 from time import time
 
 from six import int2byte
-from numpy import full, nan
+from numpy import full, nan, reshape, transpose
 from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
                      ndiGetPHSRNumberOfHandles, ndiGetPHSRHandle,
@@ -417,13 +417,15 @@ class NDITracker:
                 qtransform = self._get_transform(
                     self._device,
                     self._tool_descriptors[i].get("c_str port handle"))
-                tracking_quality.append(qtransform[7])
-                if not qtransform == "MISSING" and not transform == "DISABLED":
+                if not qtransform == "MISSING" and not qtransform == "DISABLED":
+                    tracking_quality.append(qtransform[7])
                     if not self._use_quaternions:
-                        transform = ndiTransformToMatrixd(qtransform)
+                        transform = transpose(
+                                reshape(ndiTransformToMatrixd(qtransform),[4,4]))
                     else:
                         transform = qtransform[0:6]
                 else:
+                    tracking_quality.append(nan)
                     if not self._use_quaternions:
                         transform = full((4, 4), nan)
                     else:
