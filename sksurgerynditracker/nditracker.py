@@ -18,6 +18,16 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE,
                      ndiVER)
 
+def _check_config_aurora(configuration):
+    """
+    Internal function to check configuration of an aurora
+    """
+    if "serial port" not in configuration:
+        configuration.update({"serial port": -1})
+
+    if "number of ports to probe" not in configuration:
+        configuration.update({"ports to probe" : 20})
+
 
 class NDITracker:
     """
@@ -30,10 +40,6 @@ class NDITracker:
         self._device = None
         self._tool_descriptors = []
         self._tracker_type = None
-        self._ip_address = None
-        self._port = None
-        self._serial_port = None
-        self._ports_to_probe = None
         self._device_firmware_version = None
         self._use_bx_transforms = None
         self._state = None
@@ -55,17 +61,19 @@ class NDITracker:
 
             serial port:
 
+            ports to probe:
+
         :raise Exception: IOError, KeyError
         """
         self._configure(configuration)
         if self._tracker_type == "vega":
-            self._connect_vega()
+            self._connect_vega(configuration)
 
         if self._tracker_type == "aurora":
-            self._connect_aurora()
+            self._connect_aurora(configuration)
 
         if self._tracker_type == "polaris":
-            self._connect_polaris()
+            self._connect_polaris(configuration)
 
         if self._tracker_type == "dummy":
             self._device = True
@@ -106,36 +114,40 @@ class NDITracker:
                 if line.startswith('Freeze Tag:'):
                     self._device_firmware_version = line.split(':')[1]
 
-    def _connect_vega(self):
-        self._connect_network()
+    def _connect_vega(self, configuration):
+        self._connect_network(configuration)
         self._read_sroms_from_file()
 
-    def _connect_polaris(self):
-        self._connect_serial()
+    def _connect_polaris(self, configuration):
+        self._connect_serial(configuration)
         self._read_sroms_from_file()
 
-    def _connect_aurora(self):
-        self._connect_serial()
+    def _connect_aurora(self, configuration):
+        self._connect_serial(configuration)
         self._find_wired_ports()
 
-    def _connect_network(self):
+    def _connect_network(self, configuration):
         #try and ping first to save time with timeouts
         param = '-n' if system().lower() == 'windows' else '-c'
-        if call(['ping', param, '1', self._ip_address]) == 0:
-            self._device = ndiOpenNetwork(self._ip_address, self._port)
+        ip_address = configuration.get("ip address")
+        port = configuration.get("port")
+        if call(['ping', param, '1', ip_address]) == 0:
+            self._device = ndiOpenNetwork(ip_address, port)
         else:
             raise IOError('Could not find a device at {}'
-                          .format(self._ip_address))
+                          .format(ip_address))
         if not self._device:
             raise IOError('Could not connect to network NDI device at {}'
-                          .format(self._ip_address))
+                          .format(ip_address))
 
         ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
 
-    def _connect_serial(self):
-        if self._serial_port == -1:
-            for port_no in range(self._ports_to_probe):
+    def _connect_serial(self, configuration):
+        serial_port = configuration.get("serial port")
+        ports_to_probe = configuration.get("ports to probe")
+        if serial_port == -1:
+            for port_no in range(ports_to_probe):
                 name = ndiDeviceName(port_no)
                 if not name:
                     continue
@@ -143,7 +155,7 @@ class NDITracker:
                 if result == NDI_OKAY:
                     break
         else:
-            name = ndiDeviceName(self._serial_port)
+            name = ndiDeviceName(serial_port)
             result = ndiProbe(name)
 
         if result != NDI_OKAY:
@@ -155,7 +167,7 @@ class NDITracker:
                 '\t2) Is the NDI device switched on?\n'
                 '\t3) Do you have sufficient privilege to connect to '
                 'the device? (e.g. on Linux are you part of the "dialout" '
-                'group?)'.format(self._ports_to_probe))
+                'group?)'.format(ports_to_probe))
 
         self._device = ndiOpen(name)
         if not self._device:
@@ -187,41 +199,39 @@ class NDITracker:
                 "and 'dummy'")
 
         if self._tracker_type == "vega":
-            self._config_vega(configuration)
+            self._check_config_vega(configuration)
 
         if self._tracker_type == "polaris":
-            self._config_polaris(configuration)
+            self._check_config_polaris(configuration)
 
         if self._tracker_type == "aurora":
-            self._config_aurora(configuration)
+            _check_config_aurora(configuration)
 
         if self._tracker_type == "dummy":
-            self._config_dummy(configuration)
+            self._check_config_dummy(configuration)
 
         if "use quaternions" in configuration:
             self._use_quaternions = configuration.get("use quaternions")
         else:
             self._use_quaternions = False
 
-    def _config_vega(self, configuration):
+    def _check_config_vega(self, configuration):
         """
         Internal function to check configuration of a polaris vega
         """
         if not "ip address" in configuration:
             raise KeyError("Configuration for vega must contain"
                            "'ip address'")
-        self._ip_address = configuration.get("ip address")
         if not "port" in configuration:
-            self._port = 8765
-        else:
-            self._port = configuration.get("port")
+            configuration.update({"port":8765})
+
         if "romfiles" not in configuration:
             raise KeyError("Configuration for vega and polaris must"
                            "contain a list of 'romfiles'")
         for romfile in configuration.get("romfiles"):
             self._tool_descriptors.append({"description" : romfile})
 
-    def _config_polaris(self, configuration):
+    def _check_config_polaris(self, configuration):
         """
         Internal function to check configuration for polaris vicra or spectra
         """
@@ -231,31 +241,13 @@ class NDITracker:
         for romfile in configuration.get("romfiles"):
             self._tool_descriptors.append({"description" : romfile})
 
-        if "serial port" in configuration:
-            self._serial_port = configuration.get("serial port")
-        else:
-            self._serial_port = -1
+        if "serial port" not in configuration:
+            configuration.update({"serial port": -1})
 
-        if "number of ports to probe" in configuration:
-            self._ports_to_probe = configuration.get("number of ports to probe")
-        else:
-            self._ports_to_probe = 20
+        if "number of ports to probe" not in configuration:
+            configuration.update({"ports to probe" : 20})
 
-    def _config_aurora(self, configuration):
-        """
-        Internal function to check configuration of an aurora
-        """
-        if "serial port" in configuration:
-            self._serial_port = configuration.get("serial port")
-        else:
-            self._serial_port = -1
-
-        if "number of ports to probe" in configuration:
-            self._ports_to_probe = configuration.get("number of ports to probe")
-        else:
-            self._ports_to_probe = 20
-
-    def _config_dummy(self, configuration):
+    def _check_config_dummy(self, configuration):
         """
         Internal function to check configuration of a testing dummy
         """
