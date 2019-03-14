@@ -12,11 +12,10 @@ from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
                      ndiOpenNetwork, ndiCloseNetwork,
                      ndiGetPHSRNumberOfHandles, ndiGetPHSRHandle,
                      ndiGetPHRQHandle, ndiPVWRFromFile,
-                     ndiGetBXTransform, ndiGetBXFrame,
-                     ndiGetTXTransform, ndiGetTXFrame,
                      ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
                      NDI_115200, NDI_8N1, NDI_NOHANDSHAKE,
                      ndiVER)
+import ndicapy
 
 def _check_config_aurora(configuration):
     """
@@ -40,9 +39,12 @@ class NDITracker:
         self._device = None
         self._tool_descriptors = []
         self._tracker_type = None
-        self._use_bx_transforms = None
         self._state = None
         self._use_quaternions = None
+
+        self._get_frame = None
+        self._get_transform = None
+        self._capture_string = None
 
     def connect(self, configuration):
         """
@@ -90,15 +92,15 @@ class NDITracker:
         certain devices we can't do this. Here we check the
         firmware version and set _use_bx_transforms to suit.
         """
-        self._use_bx_transforms = True
+        self._get_frame = getattr(ndicapy, 'ndiGetBXFrame')
+        self._get_transform = getattr(ndicapy, 'ndiGetBXTransform')
+        self._capture_string = 'BX:0801'
+
         firmware = self._get_firmware_version()
-        if firmware == ' AURORA Rev 007':
-            self._use_bx_transforms = False
-            return
-        if firmware == ' AURORA Rev 008':
-            self._use_bx_transforms = False
-            return
-        return
+        if firmware in (' AURORA Rev 007', ' AURORA Rev 008'):
+            self._get_frame = getattr(ndicapy, 'ndiGetTXFrame')
+            self._get_transform = getattr(ndicapy, 'ndiGetTXTransform')
+            self._capture_string = 'TX:0801'
 
     def _get_firmware_version(self):
         """
@@ -398,49 +400,18 @@ class NDITracker:
         data collection and when the reply is received by the host computer is
         constant. This is not necessarily the case."
         """
-        if self._use_bx_transforms:
-            frame = self._get_frame_bx()
-        else:
-            frame = self._get_frame_tx()
-
-        return frame
-
-    def _get_frame_bx(self):
         return_array = full((len(self._tool_descriptors), 11), nan)
         timestamp = time()
         if not self._tracker_type == "dummy":
-            ndiCommand(self._device, "BX:0801")
+            ndiCommand(self._device, self._capture_string)
             for i in range(len(self._tool_descriptors)):
                 return_array[i, 0] = self._tool_descriptors[i].get(
                     "port handle")
                 return_array[i, 1] = timestamp
-                return_array[i, 2] = ndiGetBXFrame(
+                return_array[i, 2] = self._get_frame(
                     self._device,
                     self._tool_descriptors[i].get("c_str port handle"))
-                transform = ndiGetBXTransform(
-                    self._device,
-                    self._tool_descriptors[i].get("c_str port handle"))
-                if not transform == "MISSING" and not transform == "DISABLED":
-                    return_array[i, 3:11] = (transform)
-        else:
-            for i in range(len(self._tool_descriptors)):
-                return_array[i, 1] = timestamp
-
-        return return_array
-
-    def _get_frame_tx(self):
-        return_array = full((len(self._tool_descriptors), 11), nan)
-        timestamp = time()
-        if not self._tracker_type == "dummy":
-            ndiCommand(self._device, "TX:0801")
-            for i in range(len(self._tool_descriptors)):
-                return_array[i, 0] = self._tool_descriptors[i].get(
-                    "port handle")
-                return_array[i, 1] = timestamp
-                return_array[i, 2] = ndiGetTXFrame(
-                    self._device,
-                    self._tool_descriptors[i].get("c_str port handle"))
-                transform = ndiGetTXTransform(
+                transform = self._get_transform(
                     self._device,
                     self._tool_descriptors[i].get("c_str port handle"))
                 if not transform == "MISSING" and not transform == "DISABLED":
