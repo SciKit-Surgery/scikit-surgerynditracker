@@ -421,7 +421,7 @@ class NDITracker:
                     tracking_quality.append(qtransform[7])
                     if not self._use_quaternions:
                         transform = transpose(
-                                reshape(ndiTransformToMatrixd(qtransform),[4,4]))
+                            reshape(ndiTransformToMatrixd(qtransform), [4, 4]))
                     else:
                         transform = qtransform[0:7]
                 else:
