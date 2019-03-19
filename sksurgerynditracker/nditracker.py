@@ -8,13 +8,6 @@ from time import time
 
 from six import int2byte
 from numpy import full, nan, reshape, transpose
-from ndicapy import (ndiDeviceName, ndiProbe, ndiOpen, ndiClose,
-                     ndiOpenNetwork, ndiCloseNetwork,
-                     ndiGetPHSRNumberOfHandles, ndiGetPHSRHandle,
-                     ndiGetPHRQHandle, ndiPVWRFromFile,
-                     ndiCommand, NDI_OKAY, ndiGetError, ndiErrorString,
-                     NDI_115200, NDI_8N1, NDI_NOHANDSHAKE,
-                     ndiVER, ndiTransformToMatrixd)
 import ndicapy
 
 def _check_config_aurora(configuration):
@@ -109,7 +102,7 @@ class NDITracker:
         device_firmware_version = 'unknown 00.0'
 
         if self._tracker_type != 'dummy':
-            device_info = ndiVER(self._device, 0).split('\n')
+            device_info = ndicapy.ndiVER(self._device, 0).split('\n')
             for line in device_info:
                 if line.startswith('Freeze Tag:'):
                     device_firmware_version = line.split(':')[1]
@@ -133,7 +126,7 @@ class NDITracker:
         ip_address = configuration.get("ip address")
         port = configuration.get("port")
         if call(['ping', param, '1', ip_address]) == 0:
-            self._device = ndiOpenNetwork(ip_address, port)
+            self._device = ndicapy.ndiOpenNetwork(ip_address, port)
         else:
             raise IOError('Could not find a device at {}'
                           .format(ip_address))
@@ -141,7 +134,7 @@ class NDITracker:
             raise IOError('Could not connect to network NDI device at {}'
                           .format(ip_address))
 
-        ndiCommand(self._device, 'INIT:')
+        ndicapy.ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
 
     def _connect_serial(self, configuration):
@@ -149,17 +142,17 @@ class NDITracker:
         ports_to_probe = configuration.get("ports to probe")
         if serial_port == -1:
             for port_no in range(ports_to_probe):
-                name = ndiDeviceName(port_no)
+                name = ndicapy.ndiDeviceName(port_no)
                 if not name:
                     continue
-                result = ndiProbe(name)
-                if result == NDI_OKAY:
+                result = ndicapy.ndiProbe(name)
+                if result == ndicapy.NDI_OKAY:
                     break
         else:
-            name = ndiDeviceName(serial_port)
-            result = ndiProbe(name)
+            name = ndicapy.ndiDeviceName(serial_port)
+            result = ndicapy.ndiProbe(name)
 
-        if result != NDI_OKAY:
+        if result != ndicapy.NDI_OKAY:
             raise IOError(
                 'Could not find any NDI device in '
                 '{} serial port candidates checked. '
@@ -170,16 +163,17 @@ class NDITracker:
                 'the device? (e.g. on Linux are you part of the "dialout" '
                 'group?)'.format(ports_to_probe))
 
-        self._device = ndiOpen(name)
+        self._device = ndicapy.ndiOpen(name)
         if not self._device:
             raise IOError('Could not connect to serial NDI device at {}'
                           .format(name))
 
-        ndiCommand(self._device, 'INIT:')
+        ndicapy.ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
-        ndiCommand(self._device,
-                   'COMM:{:d}{:03d}{:d}'
-                   .format(NDI_115200, NDI_8N1, NDI_NOHANDSHAKE))
+        ndicapy.ndiCommand(self._device,
+                           'COMM:{:d}{:03d}{:d}'
+                           .format(ndicapy.NDI_115200, ndicapy.NDI_8N1,
+                                   ndicapy.NDI_NOHANDSHAKE))
 
     def _configure(self, configuration):
         """ Reads a configuration dictionary
@@ -270,10 +264,10 @@ class NDITracker:
             self.stop_tracking()
 
         if self._tracker_type == "vega":
-            ndiCloseNetwork(self._device)
+            ndicapy.ndiCloseNetwork(self._device)
 
         if self._tracker_type in ("aurora", "polaris"):
-            ndiClose(self._device)
+            ndicapy.ndiClose(self._device)
 
         self._device = None
         self._state = None
@@ -285,17 +279,17 @@ class NDITracker:
         self.stop_tracking()
 
         #free ports that are waiting to be freed
-        ndiCommand(self._device, 'PHSR:01')
-        number_of_tools = ndiGetPHSRNumberOfHandles(self._device)
+        ndicapy.ndiCommand(self._device, 'PHSR:01')
+        number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
         for tool_index in range(number_of_tools):
-            port_handle = ndiGetPHRQHandle(self._device, tool_index)
-            ndiCommand(self._device, "PHF:{0:02x}".format(port_handle))
+            port_handle = ndicapy.ndiGetPHRQHandle(self._device, tool_index)
+            ndicapy.ndiCommand(self._device, "PHF:{0:02x}".format(port_handle))
             self._check_for_errors('freeing port handle {0:02x}.'
                                    .format(tool_index))
 
         for tool in self._tool_descriptors:
-            ndiCommand(self._device, 'PHRQ:*********1****')
-            port_handle = ndiGetPHRQHandle(self._device)
+            ndicapy.ndiCommand(self._device, 'PHRQ:*********1****')
+            port_handle = ndicapy.ndiGetPHRQHandle(self._device)
             tool.update({"port handle" : port_handle})
             if self._tracker_type == "vega":
                 tool.update({"c_str port handle" : int2byte(port_handle)})
@@ -305,12 +299,12 @@ class NDITracker:
             self._check_for_errors('getting srom file port handle {}.'
                                    .format(port_handle))
 
-            ndiPVWRFromFile(self._device, port_handle,
-                            tool.get("description"))
+            ndicapy.ndiPVWRFromFile(self._device, port_handle,
+                                    tool.get("description"))
             self._check_for_errors('setting srom file port handle {}.'
                                    .format(port_handle))
 
-        ndiCommand(self._device, 'PHSR:01')
+        ndicapy.ndiCommand(self._device, 'PHSR:01')
 
     def _initialise_ports(self):
         """Initialises each port in the list of tool descriptors"""
@@ -318,10 +312,10 @@ class NDITracker:
             raise ValueError('init ports called with no NDI device')
 
         if not self._tracker_type == "dummy":
-            ndiCommand(self._device, 'PHSR:02')
+            ndicapy.ndiCommand(self._device, 'PHSR:02')
             for tool in self._tool_descriptors:
-                ndiCommand(self._device, "PINIT:{0:02x}"
-                           .format(tool.get("port handle")))
+                ndicapy.ndiCommand(self._device, "PINIT:{0:02x}"
+                                   .format(tool.get("port handle")))
                 self._check_for_errors('Initialising port handle {0:02x}.'
                                        .format(tool.get("port handle")))
 
@@ -331,29 +325,31 @@ class NDITracker:
         if not self._device:
             raise ValueError('find wired ports called with no NDI device')
 
-        ndiCommand(self._device, 'PHSR:02')
-        number_of_tools = ndiGetPHSRNumberOfHandles(self._device)
+        ndicapy.ndiCommand(self._device, 'PHSR:02')
+        number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
         while number_of_tools > 0:
             for ndi_tool_index in range(number_of_tools):
-                port_handle = ndiGetPHSRHandle(self._device, ndi_tool_index)
+                port_handle = ndicapy.ndiGetPHSRHandle(self._device,
+                                                       ndi_tool_index)
 
                 self._tool_descriptors.append({"description" : ndi_tool_index,
                                                "port handle" : port_handle,
                                                "c_str port handle" :
                                                int2byte(port_handle)})
-                ndiCommand(self._device, "PINIT:{0:02x}".format(port_handle))
-            ndiCommand(self._device, 'PHSR:02')
-            number_of_tools = ndiGetPHSRNumberOfHandles(self._device)
+                ndicapy.ndiCommand(self._device,
+                                   "PINIT:{0:02x}".format(port_handle))
+            ndicapy.ndiCommand(self._device, 'PHSR:02')
+            number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
 
     def _enable_tools(self):
         if not self._device:
             raise ValueError('enable tools called with no NDI device')
 
         if not self._tracker_type == "dummy":
-            ndiCommand(self._device, "PHSR:03")
-            number_of_tools = ndiGetPHSRNumberOfHandles(self._device)
+            ndicapy.ndiCommand(self._device, "PHSR:03")
+            number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
             for tool_index in range(number_of_tools):
-                port_handle = ndiGetPHSRHandle(self._device, tool_index)
+                port_handle = ndicapy.ndiGetPHSRHandle(self._device, tool_index)
                 port_handle_already_present = False
                 for tool in self._tool_descriptors:
                     if tool.get("port handle") == port_handle:
@@ -367,8 +363,8 @@ class NDITracker:
                         int2byte(port_handle)})
 
                 mode = 'D'
-                ndiCommand(self._device, "PENA:{0:02x}{1}"
-                           .format(port_handle, mode))
+                ndicapy.ndiCommand(self._device, "PENA:{0:02x}{1}"
+                                   .format(port_handle, mode))
                 self._check_for_errors('Enabling port handle {}.'
                                        .format(port_handle))
 
@@ -406,7 +402,7 @@ class NDITracker:
 
         timestamp = time()
         if not self._tracker_type == "dummy":
-            ndiCommand(self._device, self._capture_string)
+            ndicapy.ndiCommand(self._device, self._capture_string)
             for i in range(len(self._tool_descriptors)):
                 port_handles.append(self._tool_descriptors[i].get(
                     "port handle"))
@@ -421,7 +417,8 @@ class NDITracker:
                     tracking_quality.append(qtransform[7])
                     if not self._use_quaternions:
                         transform = transpose(
-                            reshape(ndiTransformToMatrixd(qtransform), [4, 4]))
+                            reshape(ndicapy.ndiTransformToMatrixd(qtransform),
+                                    [4, 4]))
                     else:
                         transform = qtransform[0:7]
                 else:
@@ -467,7 +464,7 @@ class NDITracker:
             raise ValueError("""Called start tracking before device ready,
             try calling connect first""")
 
-        ndiCommand(self._device, 'TSTART:')
+        ndicapy.ndiCommand(self._device, 'TSTART:')
         self._check_for_errors('starting tracking.')
         self._state = 'tracking'
 
@@ -476,13 +473,13 @@ class NDITracker:
         Tells the NDI devices to stop tracking.
         :raise Exception: ValueError
         """
-        ndiCommand(self._device, 'TSTOP:')
+        ndicapy.ndiCommand(self._device, 'TSTOP:')
         self._check_for_errors('stopping tracking.')
         self._state = 'ready'
 
     def _check_for_errors(self, message):
-        errnum = ndiGetError(self._device)
-        if errnum != NDI_OKAY:
-            ndiClose(self._device)
+        errnum = ndicapy.ndiGetError(self._device)
+        if errnum != ndicapy.NDI_OKAY:
+            ndicapy.ndiClose(self._device)
             raise IOError('error when {}. the error was: {}'
-                          .format(message, ndiErrorString(errnum)))
+                          .format(message, ndicapy.ndiErrorString(errnum)))
