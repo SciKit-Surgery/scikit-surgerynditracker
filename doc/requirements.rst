@@ -22,22 +22,19 @@ Requirements
 |    0001    |  Functions are documented                              |  pylint, see                        |
 |            |                                                        |  tests/pylint.rc and tox.ini        |
 +------------+--------------------------------------------------------+-------------------------------------+
-|    0002    |  Package has a version number                          |  No test yet, handled by git.       |
+|    0002    |  Package has a version number                          |  handled by versioneer              |
 +------------+--------------------------------------------------------+-------------------------------------+
-|    0003    |  Connects and configures, vega, polaris and aurora     |                                     |
+|    0003    |  Connects and configures, vega, polaris and aurora     |  test_configure                     |
 +------------+--------------------------------------------------------+-------------------------------------+
-|    0004    |  Configures via a python dictionary                    |                                     |
+|    0004    |  Configures via a python dictionary                    |  test_configure                     |
 +------------+--------------------------------------------------------+-------------------------------------+
-|    0005    |  Provides get frame to get frame of tracking data      |                                     |
+|    0005    |  Provides get frame to get frame of tracking data      |  test_get_frame                     |
 +------------+--------------------------------------------------------+-------------------------------------+
-|    0006    |  Get frame returns data as numpy array                 |                                     |
+|    0006    |  Get frame returns data as numpy array                 |  test_get_frame                     |
 +------------+--------------------------------------------------------+-------------------------------------+
-|    0007    |  Supports multiple tracked objects                     |                                     |
+|    0007    |  Supports multiple tracked objects                     |  test_get_frame                     |
 +------------+--------------------------------------------------------+-------------------------------------+
-|    0008    |  Provides a method to stream data to file for later    |                                     |
-|            |  use.                                                  |                                     |
-+------------+--------------------------------------------------------+-------------------------------------+
-|    0009    |  If no tracking available GetFrame Returns NaN         |                                     |
+|    0009    |  If no tracking available GetFrame Returns NaN         |  -                                  |
 +------------+--------------------------------------------------------+-------------------------------------+
 
 

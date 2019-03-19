@@ -36,7 +36,11 @@ Installing
 
 Using
 -----
-Configuration is done using Python libraries. Tracking data is returned in NumPy arrays.
+Configuration is done using Python libraries at instantiation. Invalid
+configuration should raise exceptions. Tracking data is returned in a set of
+lists, containing the port handles, timestamps, framenumbers, the tracking data
+and a tracking quality metric. By default tracking data is returned as a 4x4 NumPy array,
+though can be returned as a quaternion by changing the configuration.
 
 ::
 
@@ -45,15 +49,16 @@ Configuration is done using Python libraries. Tracking data is returned in NumPy
         "tracker type": "polaris",
         "romfiles" : ["../data/8700339.rom"]
             }
-    TRACKER = NDITracker()
-    TRACKER.connect(SETTINGS)
+    TRACKER = NDITracker(SETTINGS)
 
     TRACKER.start_tracking()
-    print(TRACKER.get_frame()
+    port_handles, timestamps, framenumbers, tracking, quality = TRACKER.get_frame()
+    for t in tracking:
+      print (t)
     TRACKER.stop_tracking()
     TRACKER.close()
 
-See example.py for a full example
+See demo.py for a full example
 
 Developing
 ----------
