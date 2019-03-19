@@ -54,10 +54,4 @@ setup(
         'numpy>=1.11',
         'ndicapi>=3.2.3',
     ],
-
-    entry_points={
-        'console_scripts': [
-            'sksurgerynditracker=sksurgerynditracker.__main__:main',
-        ],
-    },
 )
