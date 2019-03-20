@@ -7,7 +7,7 @@ Contents
   :maxdepth: 1
 
   requirements
-  pycharm
+  release_notes
   Module Contents <modules>
 
 * :ref:`modindex`
