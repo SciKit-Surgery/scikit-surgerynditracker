@@ -35,6 +35,7 @@ SETTINGS_DUMMY = {
         "tracker type": "dummy",
         }
 
+
 def test_connect():
     """
     connects and configures ,
@@ -43,6 +44,7 @@ def test_connect():
 
     tracker = NDITracker(SETTINGS_DUMMY)
     tracker.close()
+
 
 def test_connect_network():
     """
@@ -53,6 +55,7 @@ def test_connect_network():
         tracker = NDITracker(SETTINGS_VEGA)
         del tracker
 
+
 def test_connect_serial():
     """
     connects and configures, throws error when no serial
@@ -62,6 +65,7 @@ def test_connect_serial():
     with pytest.raises(IOError):
         tracker = NDITracker(SETTINGS_POLARIS)
         del tracker
+
 
 def test_configure():
     """
@@ -116,6 +120,7 @@ def test_configure():
         tracker = NDITracker(aurora_np)
         del tracker
 
+
 def test_get_frame():
     """
     test get frame returns numpy array
@@ -142,6 +147,7 @@ def test_get_frame():
     assert tracking[0].shape == (4, 4)
     assert tracking[0].dtype == 'float64'
 
+
 def test_get_tool_descriptions():
     """
     test get tool descriptions
@@ -163,6 +169,7 @@ def test_get_tool_descriptions():
     _port_handles, descriptions = tracker.get_tool_descriptions()
     assert len(descriptions) == 2
 
+
 def test_start_tracking():
     """
     test start tracking
@@ -172,6 +179,7 @@ def test_start_tracking():
     with pytest.raises(ValueError):
         tracker.start_tracking()
     tracker.close()
+
 
 def test_stop_tracking():
     """
