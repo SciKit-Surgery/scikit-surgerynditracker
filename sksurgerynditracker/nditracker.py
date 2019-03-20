@@ -45,7 +45,7 @@ class NDITracker:
 
             ports to probe:
 
-        :raise Exception: IOError, KeyError, OSError
+        :raises Exception: IOError, KeyError, OSError
         """
         self._device = None
         self._tool_descriptors = []
@@ -255,7 +255,7 @@ class NDITracker:
         Closes the connection to the NDI Tracker and
         deletes the tracker device.
 
-        :raise Exception: ValueError
+        :raises Exception: ValueError
         """
         if not self._device:
             raise ValueError('close called with no NDI device')
@@ -458,7 +458,7 @@ class NDITracker:
     def start_tracking(self):
         """
         Tells the NDI devices to start tracking.
-        :raise Exception: ValueError
+        :raises Exception: ValueError
         """
         if self._state != 'ready':
             raise ValueError("""Called start tracking before device ready,
@@ -471,7 +471,7 @@ class NDITracker:
     def stop_tracking(self):
         """
         Tells the NDI devices to stop tracking.
-        :raise Exception: ValueError
+        :raises Exception: ValueError
         """
         ndicapy.ndiCommand(self._device, 'TSTOP:')
         self._check_for_errors('stopping tracking.')
