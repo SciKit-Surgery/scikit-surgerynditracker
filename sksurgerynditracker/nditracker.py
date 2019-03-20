@@ -447,13 +447,13 @@ class NDITracker:
 
     def get_tool_descriptions(self):
         """ Returns the port handles and tool descriptions """
-        descriptions = full((len(self._tool_descriptors), 2), "empty",
-                            dtype=object)
+        descriptions = []
+        port_handles = []
         for i in range(len(self._tool_descriptors)):
-            descriptions[i, 0] = i
-            descriptions[i, 1] = self._tool_descriptors[i].get("description")
+            descriptions.append(i)
+            port_handles.append(self._tool_descriptors[i].get("description"))
 
-        return descriptions
+        return port_handles, descriptions
 
     def start_tracking(self):
         """
