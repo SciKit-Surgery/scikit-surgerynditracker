@@ -116,40 +116,6 @@ def test_configure():
         tracker = NDITracker(aurora_np)
         del tracker
 
-def test_read_sroms_from_file():
-    """
-    read sroms throws errors when when no sroms
-    reqs:
-    """
-    tracker = NDITracker(SETTINGS_DUMMY)
-    with pytest.raises(ValueError):
-        tracker._read_sroms_from_file()
-    tracker.close()
-
-def test_initialise_ports():
-    """
-    initialise ports throws errors when when no device
-    reqs:
-    """
-    tracker = NDITracker(SETTINGS_DUMMY)
-    tracker._device = None
-    with pytest.raises(ValueError):
-        tracker._initialise_ports()
-    with pytest.raises(ValueError):
-        tracker.close()
-
-def test_enable_tools():
-    """
-    Enable ports throws errors when when no device
-    reqs:
-    """
-    tracker = NDITracker(SETTINGS_DUMMY)
-    tracker._device = None
-    with pytest.raises(ValueError):
-        tracker._enable_tools()
-    with pytest.raises(ValueError):
-        tracker.close()
-
 def test_get_frame():
     """
     test get frame returns numpy array
@@ -215,14 +181,4 @@ def test_stop_tracking():
     tracker = NDITracker(SETTINGS_DUMMY)
     with pytest.raises(ValueError):
         tracker.stop_tracking()
-    tracker.close()
-
-def test_check_for_errors():
-    """
-    test check for errors
-    reqs:
-    """
-    tracker = NDITracker(SETTINGS_DUMMY)
-    with pytest.raises(ValueError):
-        tracker._check_for_errors("dummy error")
     tracker.close()
