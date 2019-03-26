@@ -10,3 +10,6 @@
 # PyInstaller
 build/
 dist/
+
+# Virtual environment
+venv/
