@@ -7,7 +7,7 @@ from subprocess import call
 from time import time
 
 from six import int2byte
-from numpy import full, nan, reshape, transpose
+from numpy import full, nan, reshape, transpose, asarray
 import ndicapy
 
 def _check_config_aurora(configuration):
@@ -420,7 +420,7 @@ class NDITracker:
                             reshape(ndicapy.ndiTransformToMatrixd(qtransform),
                                     [4, 4]))
                     else:
-                        transform = qtransform[0:7]
+                        transform = asarray(qtransform[0:7])
                 else:
                     tracking_quality.append(nan)
                     if not self._use_quaternions:
