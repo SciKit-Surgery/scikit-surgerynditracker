@@ -420,7 +420,7 @@ class NDITracker:
                             reshape(ndicapy.ndiTransformToMatrixd(qtransform),
                                     [4, 4]))
                     else:
-                        transform = qtransform[0:7]
+                        transform = reshape(qtransform[0:7], [1, 7])
                 else:
                     tracking_quality.append(nan)
                     if not self._use_quaternions:
