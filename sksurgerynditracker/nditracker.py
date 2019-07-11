@@ -276,7 +276,8 @@ class NDITracker:
         if not self._device:
             raise ValueError('read srom called with no NDI device')
 
-        self.stop_tracking()
+        if self._state == "tracking":
+            self.stop_tracking()
 
         #free ports that are waiting to be freed
         ndicapy.ndiCommand(self._device, 'PHSR:01')
