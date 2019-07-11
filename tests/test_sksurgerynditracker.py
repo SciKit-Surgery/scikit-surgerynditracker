@@ -12,28 +12,28 @@ from sksurgerynditracker.nditracker import NDITracker
 
 #configuration.
 SETTINGS_VEGA = {
-        "tracker type": "vega",
-        "ip address" : "999.999.999.999",
-        "port" : 8765,
-        "romfiles" : [
-            "../data/something_else.rom",
-            "../data/8700339.rom"]
-        }
+    "tracker type": "vega",
+    "ip address" : "999.999.999.999",
+    "port" : 8765,
+    "romfiles" : [
+        "../data/something_else.rom",
+        "../data/8700339.rom"]
+    }
 
 SETTINGS_POLARIS = {
-        "tracker type": "polaris",
-        "romfiles" : [
-            "../data/something_else.rom",
-            "../data/8700339.rom"]
-        }
+    "tracker type": "polaris",
+    "romfiles" : [
+        "../data/something_else.rom",
+        "../data/8700339.rom"]
+    }
 
 SETTINGS_AURORA = {
-        "tracker type": "aurora"
-        }
+    "tracker type": "aurora"
+    }
 
 SETTINGS_DUMMY = {
-        "tracker type": "dummy",
-        }
+    "tracker type": "dummy",
+    }
 
 
 def test_connect():

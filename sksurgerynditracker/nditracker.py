@@ -291,10 +291,10 @@ class NDITracker:
             ndicapy.ndiCommand(self._device, 'PHRQ:*********1****')
             port_handle = ndicapy.ndiGetPHRQHandle(self._device)
             tool.update({"port handle" : port_handle})
-            if self._tracker_type == "vega":
-                tool.update({"c_str port handle" : int2byte(port_handle)})
-            else:
+            if self._tracker_type == "aurora":
                 tool.update({"c_str port handle" : str(port_handle).encode()})
+            else:
+                tool.update({"c_str port handle" : int2byte(port_handle)})
 
             self._check_for_errors('getting srom file port handle {}.'
                                    .format(port_handle))
