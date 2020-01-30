@@ -3,5 +3,5 @@
 # confused with the software requirements, which are listed in
 # doc/requirements.rst
 ndicapi>=3.2.6
-numpy
-six
+numpy>=1.11
+six>=1.10
