@@ -1,6 +1,5 @@
 stages:
   - build
-  - installer
   - test
   - deploy
 
@@ -14,42 +13,6 @@ build docs:
   artifacts:
     paths:
     - doc/
-    expire_in: 1 week
-
-
-build linux installer:
-  stage: build
-  script:
-    - tox -e installer
-  tags:
-    - shared-linux
-  artifacts:
-    paths:
-    - dist/
-    expire_in: 1 week
-
-
-build mac installer:
-  stage: build
-  script:
-    - tox -e installer
-  tags:
-    - shared-mac
-  artifacts:
-    paths:
-    - dist/
-    expire_in: 1 week
-
-
-build windows installer:
-  stage: build
-  script:
-    - tox -e installer
-  tags:
-    - shared-win
-  artifacts:
-    paths:
-    - dist/
     expire_in: 1 week
 
 
