@@ -5,6 +5,7 @@
 # doc/requirements.rst
 -r requirements.txt
 coverage
+coveralls
 mock
 pyfakefs
 parameterized
