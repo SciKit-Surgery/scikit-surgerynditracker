@@ -1,17 +1,17 @@
 scikit-surgerynditracker
 ===============================
 
-.. image:: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker/raw/master/project-icon.png
+.. image:: https://github.com/UCL/scikit-surgerynditracker/raw/master/project-icon.png
    :height: 128px
    :width: 128px
-   :target: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker
+   :target: https://github.com/UCL/scikit-surgerynditracker
 
-.. image:: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker/badges/master/pipeline.svg
-   :target: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker/pipelines
-   :alt: GitLab-CI test status
+.. image:: https://travis-ci.com/UCL/scikit-surgerytracker.svg?branch=master
+   :target: https://travis-ci.com/github/UCL/scikit-surgerynditracker
+   :alt: Travis CI test status
 
-.. image:: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker/badges/master/coverage.svg
-    :target: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker/commits/master
+.. image:: https://coveralls.io/repos/github/UCL/scikit-surgerynditracker/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/UCL/scikit-surgerynditracker?branch=master
     :alt: Test coverage
 
 .. image:: https://readthedocs.org/projects/scikit-surgerynditracker/badge/?version=latest
@@ -70,7 +70,7 @@ You can clone the repository using the following command:
 
 ::
 
-    git clone https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker
+    git clone https://github.com/UCL/SNAPPY/scikit-surgerynditracker
 
 
 Running the tests
@@ -110,12 +110,12 @@ Supported by `Wellcome`_ and `EPSRC`_.
 
 
 .. _`Wellcome EPSRC Centre for Interventional and Surgical Sciences`: http://www.ucl.ac.uk/weiss
-.. _`source code repository`: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker
+.. _`source code repository`: https://github.com/UCL/scikit-surgerynditracker
 .. _`Documentation`: https://scikit-surgerynditracker.readthedocs.io
-.. _`SNAPPY`: https://weisslab.cs.ucl.ac.uk/WEISS/PlatformManagement/SNAPPY/wikis/home
+.. _`SNAPPY`: https://www.github.com/UCL/scikit-surgery/wikis/home
 .. _`University College London (UCL)`: http://www.ucl.ac.uk/
 .. _`Wellcome`: https://wellcome.ac.uk/
 .. _`EPSRC`: https://www.epsrc.ac.uk/
-.. _`contributing guidelines`: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker/blob/master/CONTRIBUTING.rst
-.. _`license file`: https://weisslab.cs.ucl.ac.uk/WEISS/SoftwareRepositories/SNAPPY/scikit-surgerynditracker/blob/master/LICENSE
+.. _`contributing guidelines`: https://github.com/UCL/scikit-surgerynditracker/blob/master/CONTRIBUTING.rst
+.. _`license file`: https://github.com/UCL/scikit-surgerynditracker/blob/master/LICENSE
 
