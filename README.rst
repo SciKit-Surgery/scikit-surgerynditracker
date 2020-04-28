@@ -6,7 +6,7 @@ scikit-surgerynditracker
    :width: 128px
    :target: https://github.com/UCL/scikit-surgerynditracker
 
-.. image:: https://travis-ci.com/UCL/scikit-surgerytracker.svg?branch=master
+.. image:: https://travis-ci.com/UCL/scikit-surgerynditracker.svg?branch=master
    :target: https://travis-ci.com/github/UCL/scikit-surgerynditracker
    :alt: Travis CI test status
 
