@@ -9,6 +9,7 @@ from time import time
 from six import int2byte
 from numpy import full, nan, reshape, transpose
 import ndicapy
+from sksurgerycore.baseclasses.tracker import SKSBaseTracker
 
 def _check_config_aurora(configuration):
     """
@@ -21,7 +22,7 @@ def _check_config_aurora(configuration):
         configuration.update({"ports to probe" : 20})
 
 
-class NDITracker:
+class NDITracker(SKSBaseTracker):
     """
     Class for communication with NDI trackers.
     Should support Polaris, Aurora,
