@@ -6,9 +6,9 @@ scikit-surgerynditracker
    :width: 128px
    :target: https://github.com/UCL/scikit-surgerynditracker
 
-.. image:: https://travis-ci.com/UCL/scikit-surgerynditracker.svg?branch=master
-   :target: https://travis-ci.com/github/UCL/scikit-surgerynditracker
-   :alt: Travis CI test status
+.. image:: https://github.com/UCL/scikit-surgerynditracker/workflows/.github/workflows/ci.yml/badge.svg
+   :target: https://github.com/UCL/scikit-surgerynditracker/actions/
+   :alt: GitHub CI test status
 
 .. image:: https://coveralls.io/repos/github/UCL/scikit-surgerynditracker/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/UCL/scikit-surgerynditracker?branch=master
