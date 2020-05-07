@@ -8,8 +8,8 @@ from time import time
 
 from six import int2byte
 from numpy import full, nan, reshape, transpose
-import ndicapy
 from sksurgerycore.baseclasses.tracker import SKSBaseTracker
+import ndicapy
 
 def _check_config_aurora(configuration):
     """
