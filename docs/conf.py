@@ -30,7 +30,7 @@ root_dir_rel = os.path.join('..')
 root_dir_abs = os.path.abspath(root_dir_rel)
 module_path = root_dir_abs
 sys.path.insert(0, module_path)
-logo_file = 'project-icon.png'
+logo_file = 'weiss_logo.png'
 logo_path = os.path.join('..', logo_file)
 
 # List of patterns, relative to source directory, that match files and

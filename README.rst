@@ -1,7 +1,7 @@
 scikit-surgerynditracker
 ===============================
 
-.. image:: https://github.com/UCL/scikit-surgerynditracker/raw/master/project-icon.png
+.. image:: https://github.com/UCL/scikit-surgerynditracker/raw/master/weiss_logo.png
    :height: 128px
    :width: 128px
    :target: https://github.com/UCL/scikit-surgerynditracker
