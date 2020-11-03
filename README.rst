@@ -5,6 +5,9 @@ scikit-surgerynditracker
    :height: 128px
    :width: 128px
    :target: https://github.com/UCL/scikit-surgerynditracker
+   :alt: Logo
+
+|
 
 .. image:: https://github.com/UCL/scikit-surgerynditracker/workflows/.github/workflows/ci.yml/badge.svg
    :target: https://github.com/UCL/scikit-surgerynditracker/actions/
@@ -18,13 +21,16 @@ scikit-surgerynditracker
     :target: http://scikit-surgerynditracker.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://img.shields.io/badge/Cite-SciKit--Surgery-informational
+   :target: https://doi.org/10.1007/s11548-020-02180-5
+   :alt: The SciKit-Surgery paper
 
 
 scikit-surgerynditracker is a python interface for Northern Digital (NDI) trackers. It should work with Polaris Vicra, Spectra, and Vega optical trackers and Aurora electromagnetic trackers. Tracking data is output as NumPy arrays.
 
 Author: Stephen Thompson
 
-scikit-surgerynditracker is part of the `SNAPPY`_ software project, developed at the `Wellcome EPSRC Centre for Interventional and Surgical Sciences`_, part of `University College London (UCL)`_.
+scikit-surgerynditracker is part of the `SciKit-Surgery`_ software project, developed at the `Wellcome EPSRC Centre for Interventional and Surgical Sciences`_, part of `University College London (UCL)`_.
 
 
 Installing
@@ -70,7 +76,7 @@ You can clone the repository using the following command:
 
 ::
 
-    git clone https://github.com/UCL/SNAPPY/scikit-surgerynditracker
+    git clone https://github.com/UCL/scikit-surgerynditracker
 
 
 Running the tests
@@ -112,7 +118,7 @@ Supported by `Wellcome`_ and `EPSRC`_.
 .. _`Wellcome EPSRC Centre for Interventional and Surgical Sciences`: http://www.ucl.ac.uk/weiss
 .. _`source code repository`: https://github.com/UCL/scikit-surgerynditracker
 .. _`Documentation`: https://scikit-surgerynditracker.readthedocs.io
-.. _`SNAPPY`: https://www.github.com/UCL/scikit-surgery/wikis/home
+.. _`SciKit-Surgery`: https://www.github.com/UCL/scikit-surgery/wikis/home
 .. _`University College London (UCL)`: http://www.ucl.ac.uk/
 .. _`Wellcome`: https://wellcome.ac.uk/
 .. _`EPSRC`: https://www.epsrc.ac.uk/
