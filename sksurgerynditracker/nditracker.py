@@ -52,13 +52,14 @@ class NDITracker(SKSBaseTracker):
         self._tool_descriptors = []
         self._tracker_type = None
         self._state = None
-        self._use_quaternions = None
 
         self._get_frame = None
         self._get_transform = None
         self._capture_string = None
 
         self._configure(configuration)
+        super().__init__(configuration, tracked_objects = None)
+
         if self._tracker_type == "vega":
             self._connect_vega(configuration)
 
@@ -206,11 +207,6 @@ class NDITracker(SKSBaseTracker):
 
         if self._tracker_type == "dummy":
             self._check_config_dummy(configuration)
-
-        if "use quaternions" in configuration:
-            self._use_quaternions = configuration.get("use quaternions")
-        else:
-            self._use_quaternions = False
 
     def _check_config_vega(self, configuration):
         """
@@ -418,7 +414,7 @@ class NDITracker(SKSBaseTracker):
                     self._tool_descriptors[i].get("c_str port handle"))
                 if not qtransform == "MISSING" and not qtransform == "DISABLED":
                     tracking_quality.append(qtransform[7])
-                    if not self._use_quaternions:
+                    if not self.use_quaternions:
                         transform = transpose(
                             reshape(ndicapy.ndiTransformToMatrixd(qtransform),
                                     [4, 4]))
@@ -426,7 +422,7 @@ class NDITracker(SKSBaseTracker):
                         transform = reshape(qtransform[0:7], [1, 7])
                 else:
                     tracking_quality.append(nan)
-                    if not self._use_quaternions:
+                    if not self.use_quaternions:
                         transform = full((4, 4), nan)
                     else:
                         transform = full((1, 7), nan)
@@ -440,7 +436,7 @@ class NDITracker(SKSBaseTracker):
                 time_stamps.append(timestamp)
                 frame_numbers.append(0)
                 tracking_quality.append(0.0)
-                if not self._use_quaternions:
+                if not self.use_quaternions:
                     tracking.append(full((4, 4), nan))
                 else:
                     tracking.append(full((1, 7), nan))

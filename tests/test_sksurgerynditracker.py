@@ -35,6 +35,10 @@ SETTINGS_DUMMY = {
     "tracker type": "dummy",
     }
 
+SETTINGS_DUMMY_QUATERNIONS = {
+    "tracker type": "dummy",
+    "use quaternions": True
+    }
 
 def test_connect():
     """
@@ -43,7 +47,24 @@ def test_connect():
     """
 
     tracker = NDITracker(SETTINGS_DUMMY)
+    assert not tracker.use_quaternions
     tracker.close()
+
+def test_connect_quaternions():
+    """
+    connects and configures ,
+    reqs: 03, 04
+    """
+
+    tracker = NDITracker(SETTINGS_DUMMY_QUATERNIONS)
+    assert tracker.use_quaternions
+    assert tracker.buffer_size == 1
+    tracker.close()
+
+    SETTINGS_DUMMY_QUATERNIONS['smoothing buffer'] = 3
+    tracker = NDITracker(SETTINGS_DUMMY_QUATERNIONS)
+    assert tracker.buffer_size == 3
+
 
 
 def test_connect_network():
