@@ -46,8 +46,10 @@ class NDITracker(SKSBaseTracker):
         self._get_frame = None
         self._get_transform = None
         self._capture_string = None
+        self._verbose = None
 
         self._configure(configuration)
+        
         super().__init__(configuration, tracked_objects = None)
 
         if self._tracker_type == "vega":
@@ -136,9 +138,13 @@ class NDITracker(SKSBaseTracker):
         if serial_port == -1:
             for port_no in range(ports_to_probe):
                 name = ndicapy.ndiDeviceName(port_no)
+                if self._verbose:
+                    print("Probing port: ", port_no, " got name: ", name)
                 if not name:
                     continue
                 result = ndicapy.ndiProbe(name)
+                if self._verbose:
+                    print("result: ", result)
                 if result == ndicapy.NDI_OKAY:
                     break
         else:
@@ -197,6 +203,8 @@ class NDITracker(SKSBaseTracker):
 
         if self._tracker_type == "dummy":
             self._check_config_dummy(configuration)
+
+        self._verbose = configuration.get("verbose", False)
 
     def _check_config_vega(self, configuration):
         """
