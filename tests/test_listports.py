@@ -4,4 +4,4 @@ from serial.tools import list_ports #pylint: disable=import-error
 
 def test_list_ports():
     """ What serial ports do we have """
-    print(list_ports.comports())
+    print([comport.device for comport in list_ports.comports()])
