@@ -14,7 +14,19 @@ def test_list_ports():
     serial_ports = list_ports.comports()
 
     ndi_port_names = []
-    for port_number, _ in enumerate(serial_ports):
+    max_com_port = 0
+    for port_number, serial_port in enumerate(serial_ports):
+        ndi_port_names.append(ndiDeviceName(port_number))
+        try:
+            windows_port_number = int(serial_port.replace('COM', ''))
+            if windows_port_number > max_com_port:
+                max_com_port = windows_port_number
+        except ValueError:
+            #we're probably not on windows, so don't care
+            pass
+
+    while len(ndi_port_names) < max_com_port:
+        port_number = len(ndi_port_names)
         ndi_port_names.append(ndiDeviceName(port_number))
 
     for serial_port in serial_ports:
