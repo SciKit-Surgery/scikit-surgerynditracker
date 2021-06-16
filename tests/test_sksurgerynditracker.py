@@ -137,7 +137,7 @@ def test_configure():
 
     with pytest.raises(IOError) or pytest.raises(OSError):
         aurora_np = {"tracker type": "aurora",
-                     "ports to probe": 50,
+                     "ports to probe": 10,
                      "verbose": True}
         tracker = NDITracker(aurora_np)
         del tracker
