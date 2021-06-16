@@ -27,7 +27,7 @@ jobs:
       - name: Run tests
         run: |
           coverage erase
-          coverage run -a --source ./sksurgerynditracker -m pytest
+          coverage run -a --source ./sksurgerynditracker -m pytest -s -v
           coverage report -m
 
       - name: Linting
