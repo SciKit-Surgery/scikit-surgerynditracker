@@ -11,16 +11,6 @@ from numpy import full, nan, reshape, transpose
 from sksurgerycore.baseclasses.tracker import SKSBaseTracker
 import ndicapy
 
-def _check_config_aurora(configuration):
-    """
-    Internal function to check configuration of an aurora
-    """
-    if "serial port" not in configuration:
-        configuration.update({"serial port": -1})
-
-    if "number of ports to probe" not in configuration:
-        configuration.update({"ports to probe" : 20})
-
 
 class NDITracker(SKSBaseTracker):
     """
@@ -141,8 +131,8 @@ class NDITracker(SKSBaseTracker):
         self._check_for_errors('Sending INIT command')
 
     def _connect_serial(self, configuration):
-        serial_port = configuration.get("serial port")
-        ports_to_probe = configuration.get("ports to probe")
+        serial_port = configuration.get("serial port", -1)
+        ports_to_probe = configuration.get("ports to probe", 20)
         if serial_port == -1:
             for port_no in range(ports_to_probe):
                 name = ndicapy.ndiDeviceName(port_no)
@@ -203,7 +193,7 @@ class NDITracker(SKSBaseTracker):
             self._check_config_polaris(configuration)
 
         if self._tracker_type == "aurora":
-            _check_config_aurora(configuration)
+            pass
 
         if self._tracker_type == "dummy":
             self._check_config_dummy(configuration)
@@ -233,12 +223,6 @@ class NDITracker(SKSBaseTracker):
                            "contain a list of 'romfiles'")
         for romfile in configuration.get("romfiles"):
             self._tool_descriptors.append({"description" : romfile})
-
-        if "serial port" not in configuration:
-            configuration.update({"serial port": -1})
-
-        if "number of ports to probe" not in configuration:
-            configuration.update({"ports to probe" : 20})
 
     def _check_config_dummy(self, configuration):
         """
