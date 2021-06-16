@@ -13,8 +13,11 @@ def test_list_ports():
 
     serial_ports = list_ports.comports()
 
-    for port_number, serial_port in enumerate(serial_ports):
+    ndi_port_names = []
+    for port_number, _ in enumerate(serial_ports):
+        ndi_port_names.append(ndiDeviceName(port_number))
+
+    for serial_port in serial_ports:
         pyserial_port_name = serial_port.device
-        ndicapy_port_name = ndiDeviceName(port_number)
-        print("Checking port:", pyserial_port_name, ndicapy_port_name)
-        assert pyserial_port_name == ndicapy_port_name
+        print("Checking port:", pyserial_port_name, ndi_port_names)
+        assert pyserial_port_name in ndi_port_names
