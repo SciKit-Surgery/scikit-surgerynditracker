@@ -67,7 +67,7 @@ def _get_serial_port_name(configuration):
                 if serial_port < len(serial_ports):
                     name = serial_ports[serial_port].device
                     result = ndicapy.ndiProbe(name)
-                    print("Probing port: ", port_no, " got name: ", name,
+                    print("Probing port: ", serial_port, " got name: ", name,
                           " Result: ", result, file=fileout)
             if isinstance(serial_port, str):
                 name = serial_port
