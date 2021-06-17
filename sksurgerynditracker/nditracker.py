@@ -2,14 +2,91 @@
 
 """Class implementing communication with NDI (Northern Digital) trackers"""
 
+import sys
+import os
+import contextlib
+
 from platform import system
 from subprocess import call
 from time import time
+from serial.tools import list_ports #pylint: disable=import-error
 
 from six import int2byte
 from numpy import full, nan, reshape, transpose
 from sksurgerycore.baseclasses.tracker import SKSBaseTracker
 import ndicapy
+
+@contextlib.contextmanager
+def _open_logging(verbose):
+    """
+    Opens either stdout out if verbose is true,
+    else os.devnull if verbose is false
+    """
+    if verbose:
+        fileout = sys.stdout
+    else:
+        fileout = open(os.devnull, 'w') #pylint: disable=consider-using-with
+
+    try:
+        yield fileout
+
+    finally:
+        if fileout is not sys.stdout:
+            fileout.close()
+
+def _get_serial_port_name(configuration):
+    """
+    Probes the system's serial ports to
+    find the name of the serial port and check we can connect
+
+    :return port_name: the name of the port
+
+    :raises: IOError if port not found or port probe fails
+    """
+
+    with _open_logging(configuration.get('verbose', False)) as fileout:
+        serial_port = configuration.get("serial port", None)
+        ports_to_probe = configuration.get("ports to probe", 20)
+        serial_ports = list_ports.comports()
+        result = None
+        name = None
+        if ports_to_probe > len(serial_ports):
+            ports_to_probe = len(serial_ports)
+
+        if serial_port is None:
+            for port_no in range(ports_to_probe):
+                name = serial_ports[port_no].device
+
+                result = ndicapy.ndiProbe(name)
+                print("Probing port: ", port_no, " got name: ", name,
+                      " Result: ", result, file=fileout)
+                if result == ndicapy.NDI_OKAY:
+                    break
+        else:
+            if isinstance(serial_port, int):
+                if serial_port < len(serial_ports):
+                    name = serial_ports[serial_port].device
+                    result = ndicapy.ndiProbe(name)
+                    print("Probing port: ", serial_port, " got name: ", name,
+                          " Result: ", result, file=fileout)
+            if isinstance(serial_port, str):
+                name = serial_port
+                result = ndicapy.ndiProbe(name)
+                print("Probing port: ", name,
+                      " Result: ", result, file=fileout)
+
+        if result != ndicapy.NDI_OKAY:
+            raise IOError(
+                'Could not find any NDI device in '
+                '{} serial port candidates checked. '
+                'Please check the following:\n'
+                '\t1) Is an NDI device connected to your computer?\n'
+                '\t2) Is the NDI device switched on?\n'
+                '\t3) Do you have sufficient privilege to connect to '
+                'the device? (e.g. on Linux are you part of the "dialout" '
+                'group?)'.format(ports_to_probe))
+
+        return name
 
 
 class NDITracker(SKSBaseTracker):
@@ -46,7 +123,6 @@ class NDITracker(SKSBaseTracker):
         self._get_frame = None
         self._get_transform = None
         self._capture_string = None
-        self._verbose = None
 
         self._configure(configuration)
 
@@ -108,11 +184,13 @@ class NDITracker(SKSBaseTracker):
         self._read_sroms_from_file()
 
     def _connect_polaris(self, configuration):
-        self._connect_serial(configuration)
+        name = _get_serial_port_name(configuration)
+        self._connect_serial(name)
         self._read_sroms_from_file()
 
     def _connect_aurora(self, configuration):
-        self._connect_serial(configuration)
+        name = _get_serial_port_name(configuration)
+        self._connect_serial(name)
         self._find_wired_ports()
 
     def _connect_network(self, configuration):
@@ -132,40 +210,13 @@ class NDITracker(SKSBaseTracker):
         ndicapy.ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
 
-    def _connect_serial(self, configuration):
-        serial_port = configuration.get("serial port", -1)
-        ports_to_probe = configuration.get("ports to probe", 20)
-        if serial_port == -1:
-            for port_no in range(ports_to_probe):
-                name = ndicapy.ndiDeviceName(port_no)
-                if self._verbose:
-                    print("Probing port: ", port_no, " got name: ", name,
-                                    end=" ")
-                if not name:
-                    if self._verbose:
-                        print("")
-                    continue
 
-                result = ndicapy.ndiProbe(name)
-                if self._verbose:
-                    print("Result: ", result)
-                if result == ndicapy.NDI_OKAY:
-                    break
-        else:
-            name = ndicapy.ndiDeviceName(serial_port)
-            result = ndicapy.ndiProbe(name)
+    def _connect_serial(self, name):
+        """
+        Attempts to open the serial port with name name
 
-        if result != ndicapy.NDI_OKAY:
-            raise IOError(
-                'Could not find any NDI device in '
-                '{} serial port candidates checked. '
-                'Please check the following:\n'
-                '\t1) Is an NDI device connected to your computer?\n'
-                '\t2) Is the NDI device switched on?\n'
-                '\t3) Do you have sufficient privilege to connect to '
-                'the device? (e.g. on Linux are you part of the "dialout" '
-                'group?)'.format(ports_to_probe))
-
+        :raises: IOError if connection fails
+        """
         self._device = ndicapy.ndiOpen(name)
         if not self._device:
             raise IOError('Could not connect to serial NDI device at {}'
@@ -207,8 +258,6 @@ class NDITracker(SKSBaseTracker):
 
         if self._tracker_type == "dummy":
             self._check_config_dummy(configuration)
-
-        self._verbose = configuration.get("verbose", False)
 
     def _check_config_vega(self, configuration):
         """
@@ -453,6 +502,7 @@ class NDITracker(SKSBaseTracker):
     def start_tracking(self):
         """
         Tells the NDI devices to start tracking.
+
         :raises Exception: ValueError
         """
         if self._state != 'ready':
@@ -466,6 +516,7 @@ class NDITracker(SKSBaseTracker):
     def stop_tracking(self):
         """
         Tells the NDI devices to stop tracking.
+
         :raises Exception: ValueError
         """
         ndicapy.ndiCommand(self._device, 'TSTOP:')

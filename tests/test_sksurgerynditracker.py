@@ -129,18 +129,29 @@ def test_configure():
         tracker = NDITracker(aurora)
         del tracker
 
+    #try with an integer serial port
     with pytest.raises(IOError) or pytest.raises(OSError):
         aurora_sp = {"tracker type": "aurora",
-                     "serial_port": "1"}
+                     "serial port": 0}
         tracker = NDITracker(aurora_sp)
         del tracker
 
+    #try with verbose on
     with pytest.raises(IOError) or pytest.raises(OSError):
         aurora_np = {"tracker type": "aurora",
                      "ports to probe": 10,
                      "verbose": True}
         tracker = NDITracker(aurora_np)
         del tracker
+
+    #with a named serial port on windows
+    with pytest.raises(IOError) or pytest.raises(OSError):
+        aurora_np = {"tracker type": "aurora",
+                     "serial port": "COM2",
+                     "verbose": True}
+        tracker = NDITracker(aurora_np)
+        del tracker
+
 
 
 def test_get_frame():
