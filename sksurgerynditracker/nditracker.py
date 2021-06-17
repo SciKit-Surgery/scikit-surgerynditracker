@@ -56,14 +56,10 @@ def _get_serial_port_name(configuration):
         if serial_port == -1:
             for port_no in range(ports_to_probe):
                 name = serial_ports[port_no].device
-                print("Probing port: ", port_no, " got name: ", name,
-                       end=" ", file=fileout)
-                if not name:
-                    print("", file=fileout)
-                    continue
 
                 result = ndicapy.ndiProbe(name)
-                print("Result: ", result, file=fileout)
+                print("Probing port: ", port_no, " got name: ", name,
+                      " Result: ", result, file=fileout)
                 if result == ndicapy.NDI_OKAY:
                     break
         else:
