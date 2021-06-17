@@ -45,7 +45,7 @@ def _get_serial_port_name(configuration):
     """
 
     with _open_logging(configuration.get('verbose', False)) as fileout:
-        serial_port = configuration.get("serial port", -1)
+        serial_port = configuration.get("serial port", None)
         ports_to_probe = configuration.get("ports to probe", 20)
         serial_ports = list_ports.comports()
         result = None
@@ -53,7 +53,7 @@ def _get_serial_port_name(configuration):
         if ports_to_probe > len(serial_ports):
             ports_to_probe = len(serial_ports)
 
-        if serial_port == -1:
+        if serial_port is None:
             for port_no in range(ports_to_probe):
                 name = serial_ports[port_no].device
 
@@ -65,7 +65,7 @@ def _get_serial_port_name(configuration):
         else:
             if isinstance(serial_port, int):
                 if serial_port < len(serial_ports):
-                    name = serial_ports[port_no].device
+                    name = serial_ports[serial_port].device
                     result = ndicapy.ndiProbe(name)
                     print("Probing port: ", port_no, " got name: ", name,
                           " Result: ", result, file=fileout)
