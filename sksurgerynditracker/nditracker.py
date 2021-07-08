@@ -474,8 +474,8 @@ class NDITracker(SKSBaseTracker):
                 tracking.append(transform)
 
         else:
-            for i in range(len(self._tool_descriptors)):
-                port_handles.append(self._tool_descriptors[i].get(
+            for descriptor in self._tool_descriptors:
+                port_handles.append(descriptor.get(
                     "port handle"))
                 time_stamps.append(timestamp)
                 frame_numbers.append(0)
