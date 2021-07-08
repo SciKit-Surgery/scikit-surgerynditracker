@@ -492,9 +492,9 @@ class NDITracker(SKSBaseTracker):
         """ Returns the port handles and tool descriptions """
         port_handles = []
         descriptions = []
-        for i in range(len(self._tool_descriptors)):
-            port_handles.append(self._tool_descriptors[i].get("port handle"))
-            descriptions.append(self._tool_descriptors[i].get("description"))
+        for descriptor in self._tool_descriptors:
+            port_handles.append(descriptor.get("port handle"))
+            descriptions.append(descriptor.get("description"))
 
         return port_handles, descriptions
 
