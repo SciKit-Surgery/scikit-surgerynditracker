@@ -447,16 +447,15 @@ class NDITracker(SKSBaseTracker):
         timestamp = time()
         if not self._tracker_type == "dummy":
             ndicapy.ndiCommand(self._device, self._capture_string)
-            for i in range(len(self._tool_descriptors)):
-                port_handles.append(self._tool_descriptors[i].get(
-                    "port handle"))
+            for descriptor in self._tool_descriptors:
+                port_handles.append(descriptor.get("port handle"))
                 time_stamps.append(timestamp)
                 frame_numbers.append(self._get_frame(
                     self._device,
-                    self._tool_descriptors[i].get("c_str port handle")))
+                    descriptor.get("c_str port handle")))
                 qtransform = self._get_transform(
                     self._device,
-                    self._tool_descriptors[i].get("c_str port handle"))
+                    descriptor.get("c_str port handle"))
                 if not qtransform == "MISSING" and not qtransform == "DISABLED":
                     tracking_quality.append(qtransform[7])
                     if not self.use_quaternions:
@@ -475,8 +474,8 @@ class NDITracker(SKSBaseTracker):
                 tracking.append(transform)
 
         else:
-            for i in range(len(self._tool_descriptors)):
-                port_handles.append(self._tool_descriptors[i].get(
+            for descriptor in self._tool_descriptors:
+                port_handles.append(descriptor.get(
                     "port handle"))
                 time_stamps.append(timestamp)
                 frame_numbers.append(0)
@@ -493,9 +492,9 @@ class NDITracker(SKSBaseTracker):
         """ Returns the port handles and tool descriptions """
         port_handles = []
         descriptions = []
-        for i in range(len(self._tool_descriptors)):
-            port_handles.append(self._tool_descriptors[i].get("port handle"))
-            descriptions.append(self._tool_descriptors[i].get("description"))
+        for descriptor in self._tool_descriptors:
+            port_handles.append(descriptor.get("port handle"))
+            descriptions.append(descriptor.get("description"))
 
         return port_handles, descriptions
 
