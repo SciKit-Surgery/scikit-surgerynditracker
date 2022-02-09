@@ -32,7 +32,7 @@ jobs:
 
       - name: Linting
         run: |
-          pylint --rcfile=tests/pylintrc sksurgerynditracker
+          pylint --rcfile=tests/pylintrc sksurgerynditracker tests
 
       - name: Run coveralls
         run: |

@@ -16,6 +16,10 @@ from numpy import full, nan, reshape, transpose
 from sksurgerycore.baseclasses.tracker import SKSBaseTracker
 import ndicapy
 
+#some of the serial connection commands use format to connect, don't
+#update to f strings until we can test in the lab
+#pylint: disable=consider-using-f-string
+
 @contextlib.contextmanager
 def _open_logging(verbose):
     """
@@ -25,7 +29,7 @@ def _open_logging(verbose):
     if verbose:
         fileout = sys.stdout
     else:
-        fileout = open(os.devnull, 'w') #pylint: disable=consider-using-with
+        fileout = open(os.devnull, 'w', encoding = 'utf-8') #pylint: disable=consider-using-with
 
     try:
         yield fileout
