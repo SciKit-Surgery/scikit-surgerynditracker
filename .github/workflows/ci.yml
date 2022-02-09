@@ -6,10 +6,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-latest, windows-latest]
-        python-ver: [3.6, 3.7, 3.8]
+        python-ver: [3.7, 3.8]
+        
         include:
-          - python-ver: 3.9
-            os: ubuntu-18.04
+          - os: ubuntu-18.04
+            python-ver: 3.9
 
     runs-on: ${{ matrix.os }}
 
@@ -32,7 +33,7 @@ jobs:
 
       - name: Linting
         run: |
-          pylint --rcfile=tests/pylintrc sksurgerynditracker
+          pylint --rcfile=tests/pylintrc sksurgerynditracker tests
 
       - name: Run coveralls
         run: |
