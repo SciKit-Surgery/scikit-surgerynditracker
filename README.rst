@@ -1,9 +1,8 @@
 scikit-surgerynditracker
 ===============================
 
-.. image:: https://github.com/SciKit-Surgery/scikit-surgerynditracker/raw/master/weiss_logo.png
+.. image:: https://github.com/SciKit-Surgery/scikit-surgerynditracker/raw/master/sksndi_logo.png
    :height: 128px
-   :width: 128px
    :target: https://github.com/SciKit-Surgery/scikit-surgerynditracker
    :alt: Logo
 
