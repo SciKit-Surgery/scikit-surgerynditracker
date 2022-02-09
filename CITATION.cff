@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+message: "If you use SciKit-SurgeryNDITracker packages in your research, please cite it as below."
+authors:
+- family-names: "Thompson"
+  given-names: "Stephen"
+  orcid: "https://orcid.org/0000-0001-7286-1326"
+- family-names: "Dowrick"
+  given-names: "Thomas"
+  orcid: "https://orcid.org/0000-0002-2712-4447"
+- family-names: "Ahmad"
+  given-names: "Mian"
+  orcid: "https://orcid.org/0000-0002-4706-4146"
+- family-names: "Clarkson"
+  given-names: "Matthew"
+  orcid: "https://orcid.org/0000-0002-5565-1252"
+title: "SciKit-Surgery"
+url: "https://github.com/SciKit-Surgery/scikit-surgerynditracker"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Thompson"
+    given-names: "Stephen"
+    orcid: "https://orcid.org/0000-0001-7286-1326"
+  - family-names: "Dowrick"
+    given-names: "Thomas"
+    orcid: "https://orcid.org/0000-0002-2712-4447"
+  - family-names: "Ahmad"
+    given-names: "Mian"
+    orcid: "https://orcid.org/0000-0002-4706-4146"
+  - family-names: "Xiao"
+    given-names: "Guofang"
+  - family-names: "Koo"
+    given-names: "Bongjin"
+    orcid: "https://orcid.org/0000-0002-3611-4988"
+  - family-names: "Bonmati"
+    given-names: "Ester"
+    orcid: "https://orcid.org/0000-0001-9217-5438"
+  - family-names: "Kahl"
+    given-names: "Kim"
+  - family-names: "Clarkson"
+    given-names: "Matthew"
+    orcid: "https://orcid.org/0000-0002-5565-1252"
+  doi: 10.1007/s11548-020-02180-5
+  journal: "International journal of computer assisted radiology and surgery"
+  start: 1075
+  end: 1084
+  title: "SciKit-Surgery: Compact Libraries for Surgical Navigation"
+  volume: 15
+  issue: 7
+  year: 2020

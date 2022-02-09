@@ -16,7 +16,7 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     description='Interface for Northern Digital (NDI) Trackers with data to NumPy arrays',
     long_description=long_description,
-    url='https://github.com/UCL/scikit-surgerynditracker',
+    url='https://github.com/SciKit-Surgery/scikit-surgerynditracker',
     author='Stephen Thompson',
     author_email='s.thompson@ucl.ac.uk',
     license='BSD-3 license',
