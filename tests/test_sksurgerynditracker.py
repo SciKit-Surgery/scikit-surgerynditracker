@@ -202,6 +202,21 @@ def test_get_tool_descriptions():
     _port_handles, descriptions = tracker.get_tool_descriptions()
     assert len(descriptions) == 2
 
+def test_throw_file_not_found_error():
+    """
+    tests that we throw a file not found for no rom file
+    """
+
+    dummy_two_rom = {
+        "tracker type": "dummy",
+        "romfiles" : [
+            "notmydata/something_else.rom",
+            "data/8700339.rom"]
+        }
+
+    with pytest.raises(FileNotFoundError):
+        _tracker = NDITracker(dummy_two_rom)
+
 
 def test_start_tracking():
     """
