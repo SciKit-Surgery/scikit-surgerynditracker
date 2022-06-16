@@ -277,6 +277,8 @@ class NDITracker(SKSBaseTracker):
             raise KeyError("Configuration for vega and polaris must"
                            "contain a list of 'romfiles'")
         for romfile in configuration.get("romfiles"):
+            if not os.path.exists(romfile):
+                raise FileNotFoundError(f"ROM file '{romfile}' not found.")
             self._tool_descriptors.append({"description" : romfile})
 
     def _check_config_polaris(self, configuration):
@@ -287,6 +289,8 @@ class NDITracker(SKSBaseTracker):
             raise KeyError("Configuration for vega and polaris must"
                            "contain a list of 'romfiles'")
         for romfile in configuration.get("romfiles"):
+            if not os.path.exists(romfile):
+                raise FileNotFoundError(f"ROM file '{romfile}' not found.")
             self._tool_descriptors.append({"description" : romfile})
 
     def _check_config_dummy(self, configuration):
@@ -295,6 +299,8 @@ class NDITracker(SKSBaseTracker):
         """
         if "romfiles" in configuration:
             for romfile in configuration.get("romfiles"):
+                if not os.path.exists(romfile):
+                    raise FileNotFoundError(f"ROM file '{romfile}' not found.")
                 self._tool_descriptors.append({"description" : romfile})
 
     def close(self):
