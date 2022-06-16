@@ -169,8 +169,8 @@ def test_get_frame():
     dummy_two_rom = {
         "tracker type": "dummy",
         "romfiles" : [
-            "../data/something_else.rom",
-            "../data/8700339.rom"]
+            "data/something_else.rom",
+            "data/8700339.rom"]
         }
 
     tracker = NDITracker(dummy_two_rom)
@@ -194,8 +194,8 @@ def test_get_tool_descriptions():
     dummy_two_rom = {
         "tracker type": "dummy",
         "romfiles" : [
-            "../data/something_else.rom",
-            "../data/8700339.rom"]
+            "data/something_else.rom",
+            "data/8700339.rom"]
         }
 
     tracker = NDITracker(dummy_two_rom)
