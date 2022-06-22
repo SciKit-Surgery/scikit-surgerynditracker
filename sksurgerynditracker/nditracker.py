@@ -78,13 +78,13 @@ def _get_serial_port_name(configuration):
         if result != ndicapy.NDI_OKAY:
             raise IOError(
                 'Could not find any NDI device in '
-                '{} serial port candidates checked. '
+                f'{ports_to_probe} serial port candidates checked. '
                 'Please check the following:\n'
                 '\t1) Is an NDI device connected to your computer?\n'
                 '\t2) Is the NDI device switched on?\n'
                 '\t3) Do you have sufficient privilege to connect to '
                 'the device? (e.g. on Linux are you part of the "dialout" '
-                'group?)'.format(ports_to_probe))
+                'group?)')
 
         return name
 
@@ -201,11 +201,9 @@ class NDITracker(SKSBaseTracker):
         if call(['ping', param, '1', ip_address]) == 0:
             self._device = ndicapy.ndiOpenNetwork(ip_address, port)
         else:
-            raise IOError('Could not find a device at {}'
-                          .format(ip_address))
+            raise IOError(f'Could not find a device at {ip_address}')
         if not self._device:
-            raise IOError('Could not connect to network NDI device at {}'
-                          .format(ip_address))
+            raise IOError(f'Could not connect to network NDI device at {ip_address}')
 
         ndicapy.ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
