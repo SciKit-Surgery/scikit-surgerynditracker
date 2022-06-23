@@ -383,7 +383,7 @@ class NDITracker(SKSBaseTracker):
                                                "c_str port handle" :
                                                int2byte(port_handle)})
                 ndicapy.ndiCommand(self._device,
-                                   "PINIT:{0:02x}".format(port_handle))
+                                   f"PINIT:{port_handle:02x}")
             ndicapy.ndiCommand(self._device, 'PHSR:02')
             number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
 

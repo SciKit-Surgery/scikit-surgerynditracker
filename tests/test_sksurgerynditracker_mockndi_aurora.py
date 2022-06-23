@@ -5,14 +5,10 @@ import ndicapy
 from mock import call
 from sksurgerynditracker.nditracker import NDITracker
 
-SETTINGS_POLARIS = {
-    "tracker type": "polaris",
-    "ports to probe": 20,
-    "romfiles" : [
-        "data/something_else.rom",
-        "data/8700339.rom"]
+#configuration.
+SETTINGS_AURORA = {
+    "tracker type": "aurora"
     }
-
 class MockPort:
     """A fake serial port for ndi"""
     device = 'bad port'
@@ -41,7 +37,8 @@ def mockComports(): #pylint:disable=invalid-name
 
 def mockndiGetPHSRNumberOfHandles(_device): #pylint:disable=invalid-name
     """Mock of ndiGetPHSRNumberOfHandles"""
-    return 4
+    mockndiGetPHSRNumberOfHandles.number_of_tool_handles -= 1
+    return mockndiGetPHSRNumberOfHandles.number_of_tool_handles
 
 def mockndiGetPHRQHandle(_device, index=0): #pylint:disable=invalid-name
     """Mock of ndiGetPHRQHandle"""
@@ -55,7 +52,7 @@ def mockndiVER(_device, _other_arg): #pylint:disable=invalid-name
     """Mock of ndiVER"""
     return 'Mock for Testing'
 
-def test_connect_polaris_mock(mocker):
+def test_connect_aurora_mock(mocker):
     """
     connects and configures, mocks ndicapy.ndiProbe to pass
     reqs: 03, 04
@@ -74,25 +71,22 @@ def test_connect_polaris_mock(mocker):
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
     mocker.patch('ndicapy.ndiVER', mockndiVER)
     spy = mocker.spy(ndicapy, 'ndiCommand')
-    tracker = NDITracker(SETTINGS_POLARIS)
 
-    assert spy.call_count == 18
+    mockndiGetPHSRNumberOfHandles.number_of_tool_handles = 3
+    tracker = NDITracker(SETTINGS_AURORA)
+
+    assert spy.call_count == 13
     assert spy.call_args_list[0] == call(True, 'INIT:')
     assert spy.call_args_list[1] == call(True, 'COMM:50000')
-    assert spy.call_args_list[2] == call(True, 'PHSR:01')
-    assert spy.call_args_list[3] == call(True, 'PHF:00')
-    assert spy.call_args_list[4] == call(True, 'PHF:01')
-    assert spy.call_args_list[5] == call(True, 'PHF:02')
-    assert spy.call_args_list[6] == call(True, 'PHF:03')
-    assert spy.call_args_list[7] == call(True, 'PHRQ:*********1****')
-    assert spy.call_args_list[8] == call(True, 'PHRQ:*********1****')
-    assert spy.call_args_list[9] == call(True, 'PHSR:01')
-    assert spy.call_args_list[10] == call(True, 'PHSR:02')
+    assert spy.call_args_list[2] == call(True, 'PHSR:02')
+    assert spy.call_args_list[3] == call(True, 'PINIT:00')
+    assert spy.call_args_list[4] == call(True, 'PINIT:01')
+    assert spy.call_args_list[5] == call(True, 'PHSR:02')
+    assert spy.call_args_list[6] == call(True, 'PINIT:00')
+    assert spy.call_args_list[7] == call(True, 'PHSR:02')
+    assert spy.call_args_list[8] == call(True, 'PHSR:02')
+    assert spy.call_args_list[9] == call(True, 'PINIT:00')
+    assert spy.call_args_list[10] == call(True, 'PINIT:01')
     assert spy.call_args_list[11] == call(True, 'PINIT:00')
-    assert spy.call_args_list[12] == call(True, 'PINIT:00')
-    assert spy.call_args_list[13] == call(True, 'PHSR:03')
-    assert spy.call_args_list[14] == call(True, 'PENA:00D')
-    assert spy.call_args_list[15] == call(True, 'PENA:01D')
-    assert spy.call_args_list[16] == call(True, 'PENA:02D')
-    assert spy.call_args_list[17] == call(True, 'PENA:03D')
+    assert spy.call_args_list[12] == call(True, 'PHSR:03')
     del tracker
