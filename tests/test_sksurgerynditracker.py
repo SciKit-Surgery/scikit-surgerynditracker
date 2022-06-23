@@ -16,15 +16,15 @@ SETTINGS_VEGA = {
     "ip address" : "999.999.999.999",
     "port" : 8765,
     "romfiles" : [
-        "../data/something_else.rom",
-        "../data/8700339.rom"]
+        "data/something_else.rom",
+        "data/8700339.rom"]
     }
 
 SETTINGS_POLARIS = {
     "tracker type": "polaris",
     "romfiles" : [
-        "../data/something_else.rom",
-        "../data/8700339.rom"]
+        "data/something_else.rom",
+        "data/8700339.rom"]
     }
 
 SETTINGS_AURORA = {
