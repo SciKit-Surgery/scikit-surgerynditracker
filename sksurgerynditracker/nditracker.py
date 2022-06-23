@@ -330,7 +330,7 @@ class NDITracker(SKSBaseTracker):
         number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
         for tool_index in range(number_of_tools):
             port_handle = ndicapy.ndiGetPHRQHandle(self._device, tool_index)
-            ndicapy.ndiCommand(self._device, "PHF:{0:02x}".format(port_handle))
+            ndicapy.ndiCommand(self._device, f"PHF:{port_handle:02x}")
             self._check_for_errors(f'freeing port handle {tool_index:02x}.')
 
         for tool in self._tool_descriptors:
@@ -360,8 +360,8 @@ class NDITracker(SKSBaseTracker):
         if not self._tracker_type == "dummy":
             ndicapy.ndiCommand(self._device, 'PHSR:02')
             for tool in self._tool_descriptors:
-                ndicapy.ndiCommand(self._device, "PINIT:{0:02x}"
-                                   .format(tool.get("port handle")))
+                ndicapy.ndiCommand(self._device,
+                        f'PINIT:{tool.get("port handle"):02x}')
                 self._check_for_errors('Initialising port handle '
                                        f'{tool.get("port handle"):02x}.')
 
@@ -409,8 +409,8 @@ class NDITracker(SKSBaseTracker):
                         int2byte(port_handle)})
 
                 mode = 'D'
-                ndicapy.ndiCommand(self._device, "PENA:{0:02x}{1}"
-                                   .format(port_handle, mode))
+                ndicapy.ndiCommand(self._device,
+                        f"PENA:{port_handle:02x}{mode}")
                 self._check_for_errors(f'Enabling port handle {port_handle}.')
 
     def get_frame(self):
