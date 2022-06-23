@@ -223,9 +223,8 @@ class NDITracker(SKSBaseTracker):
         ndicapy.ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
         ndicapy.ndiCommand(self._device,
-                           'COMM:{:d}{:03d}{:d}'
-                           .format(ndicapy.NDI_115200, ndicapy.NDI_8N1,
-                                   ndicapy.NDI_NOHANDSHAKE))
+                           f'COMM:{ndicapy.NDI_115200:d}{ndicapy.NDI_8N1:03d}'
+                           f'{ndicapy.NDI_NOHANDSHAKE:d}')
 
     def _configure(self, configuration):
         """ Reads a configuration dictionary
