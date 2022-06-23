@@ -1,17 +1,8 @@
 # coding=utf-8
 
-"""scikit-surgerynditracker tests"""
-
-#what testing can we do with out being attached to a tracker?
-#What testing can we do when we are attached to a tracker?
-#We could build a fake ndi tracker, that listens on a port
-#and responds appropriately.
-
-import pytest
-from pytest_mock import MockerFixture
-from serial.tools import list_ports
-from sksurgerynditracker.nditracker import NDITracker
+"""scikit-surgerynditracker tests using a mocked ndicapy"""
 import ndicapy
+from sksurgerynditracker.nditracker import NDITracker
 
 #configuration.
 SETTINGS_VEGA = {
@@ -44,24 +35,47 @@ SETTINGS_DUMMY_QUATERNIONS = {
     "use quaternions": True
     }
 
-class mockPort:
+class MockPort:
+    """A fake serial port for ndi"""
     device = 'bad port'
 
-def mockndiProbe(port_name):
+def mockndiProbe(port_name): #pylint:disable=invalid-name
+    """Mock of ndiProbe"""
     if port_name == 'good port':
-        return ndicapy.NDI_OKAY 
+        return ndicapy.NDI_OKAY
+    return ndicapy.NDI_PROBE_FAIL
 
-def mockndiOpen(port_name):
+def mockndiOpen(port_name): #pylint:disable=invalid-name
+    """Mock of ndiOpen"""
     if port_name == 'good port':
         return True
+    return False
 
-def mockndiGetError(device):
+def mockndiGetError(_device): #pylint:disable=invalid-name
+    """Mock of ndiGetError"""
     return ndicapy.NDI_OKAY
 
-def mockComports():
-    mockPorts = [mockPort]*20
-    mockPorts[5].device = 'good port'
-    return mockPorts
+def mockComports(): #pylint:disable=invalid-name
+    """Returns a list of mock comports"""
+    mock_ports = [MockPort]*20
+    mock_ports[5].device = 'good port'
+    return mock_ports
+
+def mockndiGetPHSRNumberOfHandles(_device): #pylint:disable=invalid-name
+    """Mock of ndiGetPHSRNumberOfHandles"""
+    return 4
+
+def mockndiGetPHRQHandle(_device, index=0): #pylint:disable=invalid-name
+    """Mock of ndiGetPHRQHandle"""
+    return int(index)
+
+def mockndiGetPHSRHandle(_device, index): #pylint:disable=invalid-name
+    """Mock of ndiGetPHSRHandle"""
+    return int(index)
+
+def mockndiVER(_device, _other_arg): #pylint:disable=invalid-name
+    """Mock of ndiVER"""
+    return 'Mock for Testing'
 
 def test_connect_serial_mock(mocker):
     """
@@ -75,6 +89,11 @@ def test_connect_serial_mock(mocker):
     mocker.patch('ndicapy.ndiCommand')
     mocker.patch('ndicapy.ndiGetError', mockndiGetError)
     mocker.patch('ndicapy.ndiClose')
+    mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
+            mockndiGetPHSRNumberOfHandles)
+    mocker.patch('ndicapy.ndiGetPHRQHandle', mockndiGetPHRQHandle)
+    mocker.patch('ndicapy.ndiPVWRFromFile')
+    mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
+    mocker.patch('ndicapy.ndiVER', mockndiVER)
     tracker = NDITracker(SETTINGS_POLARIS)
     del tracker
-
