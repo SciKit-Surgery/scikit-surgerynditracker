@@ -16,10 +16,6 @@ from numpy import full, nan, reshape, transpose
 from sksurgerycore.baseclasses.tracker import SKSBaseTracker
 import ndicapy
 
-#some of the serial connection commands use format to connect, don't
-#update to f strings until we can test in the lab
-#pylint: disable=consider-using-f-string
-
 @contextlib.contextmanager
 def _open_logging(verbose):
     """
@@ -82,13 +78,13 @@ def _get_serial_port_name(configuration):
         if result != ndicapy.NDI_OKAY:
             raise IOError(
                 'Could not find any NDI device in '
-                '{} serial port candidates checked. '
+                f'{ports_to_probe} serial port candidates checked. '
                 'Please check the following:\n'
                 '\t1) Is an NDI device connected to your computer?\n'
                 '\t2) Is the NDI device switched on?\n'
                 '\t3) Do you have sufficient privilege to connect to '
                 'the device? (e.g. on Linux are you part of the "dialout" '
-                'group?)'.format(ports_to_probe))
+                'group?)')
 
         return name
 
@@ -205,11 +201,10 @@ class NDITracker(SKSBaseTracker):
         if call(['ping', param, '1', ip_address]) == 0:
             self._device = ndicapy.ndiOpenNetwork(ip_address, port)
         else:
-            raise IOError('Could not find a device at {}'
-                          .format(ip_address))
+            raise IOError(f'Could not find a device at {ip_address}')
         if not self._device:
-            raise IOError('Could not connect to network NDI device at {}'
-                          .format(ip_address))
+            raise IOError('Could not connect to network NDI device'
+                          f'at {ip_address}')
 
         ndicapy.ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
@@ -223,15 +218,13 @@ class NDITracker(SKSBaseTracker):
         """
         self._device = ndicapy.ndiOpen(name)
         if not self._device:
-            raise IOError('Could not connect to serial NDI device at {}'
-                          .format(name))
+            raise IOError(f'Could not connect to serial NDI device at {name}')
 
         ndicapy.ndiCommand(self._device, 'INIT:')
         self._check_for_errors('Sending INIT command')
         ndicapy.ndiCommand(self._device,
-                           'COMM:{:d}{:03d}{:d}'
-                           .format(ndicapy.NDI_115200, ndicapy.NDI_8N1,
-                                   ndicapy.NDI_NOHANDSHAKE))
+                           f'COMM:{ndicapy.NDI_115200:d}{ndicapy.NDI_8N1:03d}'
+                           f'{ndicapy.NDI_NOHANDSHAKE:d}')
 
     def _configure(self, configuration):
         """ Reads a configuration dictionary
@@ -337,9 +330,8 @@ class NDITracker(SKSBaseTracker):
         number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
         for tool_index in range(number_of_tools):
             port_handle = ndicapy.ndiGetPHRQHandle(self._device, tool_index)
-            ndicapy.ndiCommand(self._device, "PHF:{0:02x}".format(port_handle))
-            self._check_for_errors('freeing port handle {0:02x}.'
-                                   .format(tool_index))
+            ndicapy.ndiCommand(self._device, f"PHF:{port_handle:02x}")
+            self._check_for_errors(f'freeing port handle {tool_index:02x}.')
 
         for tool in self._tool_descriptors:
             ndicapy.ndiCommand(self._device, 'PHRQ:*********1****')
@@ -350,13 +342,13 @@ class NDITracker(SKSBaseTracker):
             else:
                 tool.update({"c_str port handle" : int2byte(port_handle)})
 
-            self._check_for_errors('getting srom file port handle {}.'
-                                   .format(port_handle))
+            self._check_for_errors(
+                    f'getting srom file port handle {port_handle}.')
 
             ndicapy.ndiPVWRFromFile(self._device, port_handle,
                                     tool.get("description"))
-            self._check_for_errors('setting srom file port handle {}.'
-                                   .format(port_handle))
+            self._check_for_errors(
+                    f'setting srom file port handle {port_handle}.')
 
         ndicapy.ndiCommand(self._device, 'PHSR:01')
 
@@ -368,10 +360,10 @@ class NDITracker(SKSBaseTracker):
         if not self._tracker_type == "dummy":
             ndicapy.ndiCommand(self._device, 'PHSR:02')
             for tool in self._tool_descriptors:
-                ndicapy.ndiCommand(self._device, "PINIT:{0:02x}"
-                                   .format(tool.get("port handle")))
-                self._check_for_errors('Initialising port handle {0:02x}.'
-                                       .format(tool.get("port handle")))
+                ndicapy.ndiCommand(self._device,
+                        f'PINIT:{tool.get("port handle"):02x}')
+                self._check_for_errors('Initialising port handle '
+                                       f'{tool.get("port handle"):02x}.')
 
     def _find_wired_ports(self):
         """For systems with wired tools, gets the number of tools plugged in
@@ -391,7 +383,7 @@ class NDITracker(SKSBaseTracker):
                                                "c_str port handle" :
                                                int2byte(port_handle)})
                 ndicapy.ndiCommand(self._device,
-                                   "PINIT:{0:02x}".format(port_handle))
+                                   f"PINIT:{port_handle:02x}")
             ndicapy.ndiCommand(self._device, 'PHSR:02')
             number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
 
@@ -417,10 +409,9 @@ class NDITracker(SKSBaseTracker):
                         int2byte(port_handle)})
 
                 mode = 'D'
-                ndicapy.ndiCommand(self._device, "PENA:{0:02x}{1}"
-                                   .format(port_handle, mode))
-                self._check_for_errors('Enabling port handle {}.'
-                                       .format(port_handle))
+                ndicapy.ndiCommand(self._device,
+                        f"PENA:{port_handle:02x}{mode}")
+                self._check_for_errors(f'Enabling port handle {port_handle}.')
 
     def get_frame(self):
         """Gets a frame of tracking data from the NDI device.
@@ -536,5 +527,5 @@ class NDITracker(SKSBaseTracker):
         errnum = ndicapy.ndiGetError(self._device)
         if errnum != ndicapy.NDI_OKAY:
             ndicapy.ndiClose(self._device)
-            raise IOError('error when {}. the error was: {}'
-                          .format(message, ndicapy.ndiErrorString(errnum)))
+            raise IOError(f'error when {message}. the error was: '
+                          f'{ndicapy.ndiErrorString(errnum)}')
