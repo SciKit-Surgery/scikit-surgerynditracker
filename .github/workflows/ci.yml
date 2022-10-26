@@ -5,11 +5,11 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-22.10, macos-latest, windows-latest]
         python-ver: [3.7, 3.8]
         
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.10
             python-ver: 3.9
 
     runs-on: ${{ matrix.os }}
@@ -41,7 +41,7 @@ jobs:
           coveralls
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.10
     needs: test
     steps:
       - uses: actions/checkout@v2
