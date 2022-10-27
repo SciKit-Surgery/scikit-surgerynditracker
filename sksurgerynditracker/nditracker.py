@@ -510,8 +510,8 @@ class NDITracker(SKSBaseTracker):
             try calling connect first""")
 
         ndicapy.ndiCommand(self._device, 'TSTART:')
-        self._check_for_errors('starting tracking.') # pragma: no cover
-        self._state = 'tracking' # pragma: no cover
+        self._check_for_errors('starting tracking.')
+        self._state = 'tracking'
 
     def stop_tracking(self):
         """
@@ -520,12 +520,12 @@ class NDITracker(SKSBaseTracker):
         :raises Exception: ValueError
         """
         ndicapy.ndiCommand(self._device, 'TSTOP:')
-        self._check_for_errors('stopping tracking.') # pragma: no cover
-        self._state = 'ready' # pragma: no cover
+        self._check_for_errors('stopping tracking.')
+        self._state = 'ready'
 
     def _check_for_errors(self, message):
         errnum = ndicapy.ndiGetError(self._device)
-        if errnum != ndicapy.NDI_OKAY: # pragma: no cover
+        if errnum != ndicapy.NDI_OKAY:
             ndicapy.ndiClose(self._device)
             raise IOError(f'error when {message}. the error was: '
                           f'{ndicapy.ndiErrorString(errnum)}')
