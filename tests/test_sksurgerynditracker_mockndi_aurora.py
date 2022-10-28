@@ -66,7 +66,7 @@ def mockndiGetPHSRHandle(_device, index):  # pylint:disable=invalid-name
 
 def mockndiVER(_device, _other_arg):  # pylint:disable=invalid-name
     """Mock of ndiVER"""
-    return 'Mock for Testing'
+    return 'Freeze Tag: Mock for Testing'
 
 
 def test_connect_aurora_mock(mocker):
