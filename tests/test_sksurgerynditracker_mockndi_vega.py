@@ -1,6 +1,7 @@
 # coding=utf-8
 
 """scikit-surgerynditracker tests using a mocked ndicapy"""
+import pytest
 import ndicapy
 from mock import call
 from sksurgerynditracker.nditracker import NDITracker
@@ -17,6 +18,10 @@ SETTINGS_VEGA = {
 def mockndiOpenNetwork(_ip_address, _port): #pylint:disable=invalid-name
     """Mock of ndiOpenNetwork"""
     return True
+
+def mockndiOpenNetwork_nodevice(_ip_address, _port):  # pylint:disable=invalid-name
+    """Mock of ndiOpenNetwork with no device"""
+    return False
 
 def mockndiGetError(_device): #pylint:disable=invalid-name
     """Mock of ndiGetError"""
@@ -67,3 +72,18 @@ def test_connect_vega_mock(mocker):
     assert spy.call_args_list[7] == call(True, 'PINIT:00')
     assert spy.call_args_list[8] == call(True, 'PHSR:03')
     del tracker
+
+def test_connect_vega_mock_nodevice(mocker):
+    """
+    connects and configures, mocks ndicapy.ndiProbe to pass
+    reqs: 03, 04
+    """
+    tracker = None
+    mocker.patch('ndicapy.ndiOpenNetwork', mockndiOpenNetwork_nodevice)
+    mocker.patch('ndicapy.ndiCommand')
+
+    with pytest.raises(IOError,
+                       match='Could not connect to network NDI device'):
+
+        tracker = NDITracker(SETTINGS_VEGA)
+        del tracker
