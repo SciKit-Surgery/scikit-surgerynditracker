@@ -133,6 +133,15 @@ def test_configure():
         tracker = NDITracker(no_tracker_type)
         del tracker
 
+    with pytest.raises(KeyError):
+        no_room_files_vega = {
+            "tracker type": "vega",
+            "ip address": "tracker",
+            }
+        tracker = NDITracker(no_room_files_vega)
+        del tracker
+
+
 
     with pytest.raises(IOError) or pytest.raises(OSError):
         aurora = {"tracker type": "aurora"}
