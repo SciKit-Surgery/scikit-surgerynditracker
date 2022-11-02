@@ -2,6 +2,7 @@
 
 """scikit-surgerynditracker tests using a mocked ndicapy"""
 import ndicapy
+import pytest
 from mock import call
 from sksurgerynditracker.nditracker import NDITracker
 
@@ -27,6 +28,12 @@ def mockndiOpen(port_name): #pylint:disable=invalid-name
     """Mock of ndiOpen"""
     if port_name == 'good port':
         return True
+    return False
+
+def mockndiOpen_fail(port_name): #pylint:disable=invalid-name
+    """Mock of ndiOpen that always fail"""
+    if port_name == 'good port':
+        return False
     return False
 
 def mockndiGetError(_device): #pylint:disable=invalid-name
@@ -96,3 +103,16 @@ def test_connect_polaris_mock(mocker):
     assert spy.call_args_list[16] == call(True, 'PENA:02D')
     assert spy.call_args_list[17] == call(True, 'PENA:03D')
     del tracker
+
+def test_connect_polaris_mk_fserial(mocker):
+    """
+    connects and configures, mocks ndicapy.ndiOpen to False
+    reqs: 03, 04
+    """
+    tracker = None
+    mocker.patch('serial.tools.list_ports.comports', mockComports)
+    mocker.patch('ndicapy.ndiProbe', mockndiProbe)
+    mocker.patch('ndicapy.ndiOpen', mockndiOpen_fail)
+    with pytest.raises(IOError):
+        tracker = NDITracker(SETTINGS_POLARIS)
+        del tracker
