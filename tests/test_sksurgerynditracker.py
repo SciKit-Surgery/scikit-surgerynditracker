@@ -141,7 +141,15 @@ def test_configure():
         tracker = NDITracker(no_room_files_vega)
         del tracker
 
-
+    with pytest.raises(FileNotFoundError):
+        no_room_files_in_paths_polaris = {
+            "tracker type": "polaris",
+            "romfiles" : [
+                "data/something_else_rom",
+                "data/8700339_rom"]
+            }
+        tracker = NDITracker(no_room_files_in_paths_polaris)
+        del tracker
 
     with pytest.raises(IOError) or pytest.raises(OSError):
         aurora = {"tracker type": "aurora"}
