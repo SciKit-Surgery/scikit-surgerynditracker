@@ -124,6 +124,16 @@ def test_configure():
         tracker = NDITracker(no_port)
         del tracker
 
+    with pytest.raises(KeyError):
+        no_tracker_type = {
+            "tracker_type": "vega",
+            "ip address": "tracker",
+            "romfiles": "[rom]"
+            }
+        tracker = NDITracker(no_tracker_type)
+        del tracker
+
+
     with pytest.raises(IOError) or pytest.raises(OSError):
         aurora = {"tracker type": "aurora"}
         tracker = NDITracker(aurora)
