@@ -265,3 +265,28 @@ def test_read_sroms_tracking_aurora(mocker):
         tracker._read_sroms_from_file()  # pylint: disable=protected-access
 
     del tracker
+
+def test_close_device_false_aurora(mocker):
+    """
+    connects and configures, mocks non ready state to pass
+    ValueError() in start_tracking()
+    """
+
+    tracker = None
+    mocker.patch('serial.tools.list_ports.comports', mockComports)
+    mocker.patch('ndicapy.ndiProbe', mockndiProbe)
+    mocker.patch('ndicapy.ndiOpen', mockndiOpen)
+    mocker.patch('ndicapy.ndiCommand')
+    mocker.patch('ndicapy.ndiGetError', mockndiGetError)
+    mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
+                 mockndiGetPHSRNumberOfHandles)
+    mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
+    mocker.patch('ndicapy.ndiVER', mockndiVER)
+    mockndiGetPHSRNumberOfHandles.number_of_tool_handles = 3
+
+    with pytest.raises(ValueError):
+        tracker = NDITracker(SETTINGS_AURORA)
+        tracker._device = False  # pylint: disable=protected-access
+        tracker.close()
+
+    del tracker
