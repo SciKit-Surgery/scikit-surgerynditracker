@@ -162,3 +162,29 @@ def test_starttracking_aurora_ready(mocker):
         tracker.start_tracking()
 
     del tracker
+
+
+def test_initialise_ports_aurora(mocker):
+    """
+    connects and configures, mocks non ready state to pass
+    ValueError() in start_tracking()
+    """
+
+    tracker = None
+    mocker.patch('serial.tools.list_ports.comports', mockComports)
+    mocker.patch('ndicapy.ndiProbe', mockndiProbe)
+    mocker.patch('ndicapy.ndiOpen', mockndiOpen)
+    mocker.patch('ndicapy.ndiCommand')
+    mocker.patch('ndicapy.ndiGetError', mockndiGetError)
+    mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
+                 mockndiGetPHSRNumberOfHandles)
+    mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
+    mocker.patch('ndicapy.ndiVER', mockndiVER)
+    mockndiGetPHSRNumberOfHandles.number_of_tool_handles = 3
+
+    with pytest.raises(ValueError):
+        tracker = NDITracker(SETTINGS_AURORA)
+        tracker._device = False  # pylint: disable=protected-access
+        tracker._initialise_ports()  # pylint: disable=protected-access
+
+    del tracker
