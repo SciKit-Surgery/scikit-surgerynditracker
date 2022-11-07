@@ -167,7 +167,7 @@ def test_starttracking_aurora_ready(mocker):
 def test_initialise_ports_aurora(mocker):
     """
     connects and configures, mocks non ready state to pass
-    ValueError() in start_tracking()
+    ValueError() in _initialise_ports()
     """
 
     tracker = None
@@ -192,7 +192,7 @@ def test_initialise_ports_aurora(mocker):
 def test_enable_tools_aurora(mocker):
     """
     connects and configures, mocks non ready state to pass
-    ValueError() in start_tracking()
+    ValueError() in _enable_tools()
     """
 
     tracker = None
@@ -217,7 +217,7 @@ def test_enable_tools_aurora(mocker):
 def test_read_sroms_aurora(mocker):
     """
     connects and configures, mocks non ready state to pass
-    ValueError() in start_tracking()
+    ValueError() for tracker._device = False in _read_sroms_from_file()
     """
 
     tracker = None
@@ -244,7 +244,7 @@ def test_read_sroms_aurora(mocker):
 def test_read_sroms_tracking_aurora(mocker):
     """
     connects and configures, mocks non ready state to pass
-    ValueError() in start_tracking()
+    ValueError() for tracker._state = 'tracking' in _read_sroms_from_file()
     """
 
     tracker = None
@@ -294,7 +294,7 @@ def test_close_device_false_aurora(mocker):
 def test_close_state_aurora(mocker):
     """
     connects and configures, mocks non ready state to pass
-    ValueError() in start_tracking()
+    ValueError() for tracker._state = 'tracking' in close()
     """
 
     tracker = None
@@ -319,7 +319,7 @@ def test_close_state_aurora(mocker):
 def test_find_wired_ports_aurora(mocker):
     """
     connects and configures, mocks non ready state to pass
-    ValueError() in start_tracking()
+    ValueError() for tracker._device = False in _find_wired_ports()
     """
 
     tracker = None
