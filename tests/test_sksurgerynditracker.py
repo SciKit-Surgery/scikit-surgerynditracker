@@ -134,21 +134,21 @@ def test_configure():
         del tracker
 
     with pytest.raises(KeyError):
-        no_room_files_vega = {
+        no_rom_files_vega = {
             "tracker type": "vega",
             "ip address": "tracker",
             }
-        tracker = NDITracker(no_room_files_vega)
+        tracker = NDITracker(no_rom_files_vega)
         del tracker
 
     with pytest.raises(FileNotFoundError):
-        no_room_files_in_paths_polaris = {
+        no_rom_files_in_paths_polaris = {
             "tracker type": "polaris",
             "romfiles" : [
                 "data/something_else_rom",
                 "data/8700339_rom"]
             }
-        tracker = NDITracker(no_room_files_in_paths_polaris)
+        tracker = NDITracker(no_rom_files_in_paths_polaris)
         del tracker
 
     with pytest.raises(IOError) or pytest.raises(OSError):
