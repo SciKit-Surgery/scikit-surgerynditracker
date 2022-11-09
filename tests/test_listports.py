@@ -1,15 +1,17 @@
 """ Lets see what com ports pyserial reports on our test runners"""
 
-from serial.tools import list_ports #pylint: disable=import-error
+import sys
+from serial.tools import list_ports  # pylint: disable=import-error
 from ndicapy import ndiDeviceName
+
 
 def test_list_ports():
     """
     Check that ndicapy.ndiDeviceName gets all the comports found
     by pyserial
     """
-    #list ports
-    print([comport.device for comport in list_ports.comports()])
+    print("List of available ports: ",
+          [comport.device for comport in list_ports.comports()])
 
     serial_ports = list_ports.comports()
 
@@ -22,7 +24,7 @@ def test_list_ports():
             if windows_port_number > max_com_port:
                 max_com_port = windows_port_number
         except ValueError:
-            #we're probably not on windows, so don't care
+            # we're probably not on windows, so don't care
             pass
 
     while len(ndi_port_names) < max_com_port:
@@ -31,5 +33,7 @@ def test_list_ports():
 
     for serial_port in serial_ports:
         pyserial_port_name = serial_port.device
-        print("Checking port:", pyserial_port_name, ndi_port_names)
-        assert pyserial_port_name in ndi_port_names
+        print("Checking port:", pyserial_port_name,
+              "in ndi_port_names: ", ndi_port_names)
+        if 'linux' not in sys.platform:
+            assert pyserial_port_name in ndi_port_names
