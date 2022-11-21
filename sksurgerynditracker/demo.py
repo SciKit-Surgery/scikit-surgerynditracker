@@ -21,8 +21,11 @@ def run():
     settings_polaris = {"tracker type": "polaris",
     "romfiles" : ["../data/8700339.rom"]}
 
-    settings_aurora = { "tracker type": "aurora",
-    "ports to use" : [1,2]}
+    settings_aurora = {
+        "tracker type": "aurora",
+        "ports to probe": 2,
+        "verbose": True,
+    }
 
     settings_dummy = {"tracker type": "dummy",}
 
