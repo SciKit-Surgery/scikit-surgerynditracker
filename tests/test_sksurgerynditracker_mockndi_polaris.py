@@ -50,9 +50,9 @@ def mockndiGetPHSRNumberOfHandles(_device): #pylint:disable=invalid-name
     """Mock of ndiGetPHSRNumberOfHandles"""
     return 4
 
-def mockndiGetPHRQHandle(_device, index=0): #pylint:disable=invalid-name
+def mockndiGetPHRQHandle(_device): #pylint:disable=invalid-name
     """Mock of ndiGetPHRQHandle"""
-    return int(index)
+    return int(0)
 
 def mockndiGetPHSRHandle(_device, index): #pylint:disable=invalid-name
     """Mock of ndiGetPHSRHandle"""
