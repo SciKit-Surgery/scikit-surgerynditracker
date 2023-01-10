@@ -54,14 +54,31 @@ def _get_serial_port_name(configuration):
             ports_to_probe = len(serial_ports)
 
         if serial_port is None:
-            for port_no in range(ports_to_probe):
-                name = serial_ports[port_no].device
+            if configuration.get('parallel probe', False):
+                import concurrent.futures
+                executor = concurrent.futures.ProcessPoolExecutor(max_workers=ports_to_probe)
+                # dict where key = future object, value = serial port #
+                future_to_port_no = {executor.submit(ndicapy.ndiProbe, serial_port.device):
+                    port_no for port_no, serial_port in enumerate(serial_ports)}
+                # iterate in order of completion
+                for future in concurrent.futures.as_completed(future_to_port_no):
+                    port_no = future_to_port_no[future]
+                    name = serial_ports[port_no].device
+                    result = future.result()
+                    print("Probing port: ", port_no, " got name: ", name,
+                          " Result: ", result, file=fileout)
+                    if result == ndicapy.NDI_OKAY:
+                        break
+                executor.shutdown(wait=False, cancel_futures=True) # return immediately
+            else:
+                for port_no in range(ports_to_probe):
+                    name = serial_ports[port_no].device
 
-                result = ndicapy.ndiProbe(name)
-                print("Probing port: ", port_no, " got name: ", name,
-                      " Result: ", result, file=fileout)
-                if result == ndicapy.NDI_OKAY:
-                    break
+                    result = ndicapy.ndiProbe(name)
+                    print("Probing port: ", port_no, " got name: ", name,
+                          " Result: ", result, file=fileout)
+                    if result == ndicapy.NDI_OKAY:
+                        break
         else:
             if isinstance(serial_port, int):
                 if serial_port < len(serial_ports):
