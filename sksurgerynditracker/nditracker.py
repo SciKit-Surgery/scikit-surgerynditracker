@@ -329,7 +329,7 @@ class NDITracker(SKSBaseTracker):
         ndicapy.ndiCommand(self._device, 'PHSR:01')
         number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
         for tool_index in range(number_of_tools):
-            port_handle = ndicapy.ndiGetPHRQHandle(self._device, tool_index)
+            port_handle = ndicapy.ndiGetPHSRHandle(self._device, tool_index)
             ndicapy.ndiCommand(self._device, f"PHF:{port_handle:02x}")
             self._check_for_errors(f'freeing port handle {tool_index:02x}.')
 

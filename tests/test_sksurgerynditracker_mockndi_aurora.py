@@ -54,11 +54,6 @@ def mockndiGetPHSRNumberOfHandles(_device):  # pylint:disable=invalid-name
     return mockndiGetPHSRNumberOfHandles.number_of_tool_handles
 
 
-def mockndiGetPHRQHandle(_device, index=0):  # pylint:disable=invalid-name
-    """Mock of ndiGetPHRQHandle"""
-    return int(index)
-
-
 def mockndiGetPHSRHandle(_device, index):  # pylint:disable=invalid-name
     """Mock of ndiGetPHSRHandle"""
     return int(index)
@@ -83,7 +78,6 @@ def test_connect_aurora_mock(mocker):
     mocker.patch('ndicapy.ndiClose')
     mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
                  mockndiGetPHSRNumberOfHandles)
-    mocker.patch('ndicapy.ndiGetPHRQHandle', mockndiGetPHRQHandle)
     mocker.patch('ndicapy.ndiPVWRFromFile')
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
     mocker.patch('ndicapy.ndiVER', mockndiVER)
@@ -127,7 +121,6 @@ def test_connect_aurora_mock_error(mocker):
     mocker.patch('ndicapy.ndiClose')
     mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
                  mockndiGetPHSRNumberOfHandles)
-    mocker.patch('ndicapy.ndiGetPHRQHandle', mockndiGetPHRQHandle)
     mocker.patch('ndicapy.ndiPVWRFromFile')
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
     mocker.patch('ndicapy.ndiVER', mockndiVER)
