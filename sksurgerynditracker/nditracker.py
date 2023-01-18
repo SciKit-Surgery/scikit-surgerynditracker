@@ -15,6 +15,8 @@ from six import int2byte
 from numpy import full, nan, reshape, transpose
 from sksurgerycore.baseclasses.tracker import SKSBaseTracker
 import ndicapy
+from sksurgerynditracker.serial_utils.com_ports import \
+        fix_com_port_greater_than_9
 
 @contextlib.contextmanager
 def _open_logging(verbose):
@@ -56,6 +58,7 @@ def _get_serial_port_name(configuration):
         if serial_port is None:
             for port_no in range(ports_to_probe):
                 name = serial_ports[port_no].device
+                name = fix_com_port_greater_than_9(name)
 
                 result = ndicapy.ndiProbe(name)
                 print("Probing port: ", port_no, " got name: ", name,
