@@ -430,7 +430,8 @@ class NDITracker(SKSBaseTracker):
 
             tracking : list of 4x4 tracking matrices, rotation and position,
             or if use_quaternions is true, a list of tracking quaternions,
-            column 0-2 is x,y,z column 3-6 is the rotation as a quaternion.
+            column 0-3 is the rotation as a quaternion,
+            column 4-6 is the translation (x,y,z).
 
             tracking_quality : list the tracking quality, one per tool.
 
