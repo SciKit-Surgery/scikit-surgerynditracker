@@ -116,6 +116,9 @@ class NDITracker(SKSBaseTracker):
 
             ports to probe:
 
+            smoothing buffer: specify a buffer over which to average the
+            tracking, defaults to 1
+
         :raises Exception: IOError, KeyError, OSError
         """
         self._device = None
@@ -462,7 +465,7 @@ class NDITracker(SKSBaseTracker):
                 qtransform = self._get_transform(
                     self._device,
                     descriptor.get("c_str port handle"))
-                if not qtransform == "MISSING" and not qtransform == "DISABLED":
+                if not isinstance(qtransform, str):
                     tracking_quality.append(qtransform[7])
                     if not self.use_quaternions:
                         transform = transpose(
@@ -490,6 +493,9 @@ class NDITracker(SKSBaseTracker):
                     tracking.append(full((4, 4), nan))
                 else:
                     tracking.append(full((1, 7), nan))
+
+        #_port_numbers, _time_stamps, _frame_numbers, _tracking,
+        #_tracking_quality = self.get_smooth_frame(port_handles)
 
         return port_handles, time_stamps, frame_numbers, tracking, \
                 tracking_quality
