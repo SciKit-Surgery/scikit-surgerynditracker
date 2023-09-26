@@ -2,6 +2,7 @@
 
 """scikit-surgerynditracker mocks for polaris"""
 
+from numpy import array, concatenate
 import ndicapy
 
 SETTINGS_POLARIS = {
@@ -60,15 +61,35 @@ def mockndiVER(_device, _other_arg): #pylint:disable=invalid-name
     """Mock of ndiVER"""
     return 'Mock for Testing'
 
-def mockndiGetBXFrame(_device, _port_handle): #pylint:disable=invalid-name
-    """Mock of ndiGetBXFrame"""
-    bx_frame_count = 0
-    return bx_frame_count
+class MockBXFrameSource():
+    """
+    A class to handle mocking of calls to get 
+    frame. Enables us to increment the frame number and return
+    changing values
+    """
+    def __init__(self):
+        self.bx_frame_count = 0
+        self.rotation = array([0, 0, 0, 0])
+        self.position = array([0, 0, 0])
+        self.velocity = array([10, -20, 5])
+        self.quality = array([1])
 
-def mockndiGetBXTransform(_device, _port_handle): #pylint:disable=invalid-name
-    """Mock of ndiGetBXTransform"""
-    return [0,0,0,0,0,0,0,0]
+    def mockndiGetBXFrame(self, _device, _port_handle): #pylint:disable=invalid-name
+        """Mock of ndiGetBXFrame"""
+        self.bx_frame_count += 1
+        return self.bx_frame_count
 
-def mockndiGetBXTransformMissing(_device, _port_handle): #pylint:disable=invalid-name
-    """Mock of ndiGetBXTransform"""
-    return "MISSING"
+    def mockndiGetBXTransform(self, _device, _port_handle): #pylint:disable=invalid-name
+        """
+        Mock of ndiGetBXTransform. To enable a simple test of tracking
+        smoothing translate the mock object between frames. Full testing of
+        the averaging code is in the base class
+        sksurgerycore.tests.algorithms
+        """
+        assert self.bx_frame_count > 0
+
+        return concatenate((self.rotation, self.position, self.quality))
+
+    def mockndiGetBXTransformMissing(self, _device, _port_handle): #pylint:disable=invalid-name
+        """Mock of ndiGetBXTransform"""
+        return "MISSING"
