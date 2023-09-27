@@ -62,6 +62,10 @@ def test_getframe_missing(mocker):
             bxsource.mockndiGetBXTransformMissing)
 
     tracker = NDITracker(SETTINGS_POLARIS)
-    tracker.get_frame()
+    (port_handles, time_stamps, frame_numbers, tracking,
+                tracking_quality ) = tracker.get_frame()
+    print (port_handles)
+    print (time_stamps)
+    print (frame_numbers)
 
     del tracker
