@@ -5,7 +5,6 @@ from sksurgerynditracker.nditracker import NDITracker
 
 from tests.polaris_mocks import SETTINGS_POLARIS, mockndiProbe, \
         mockndiOpen, mockndiGetError, mockComports, \
-        mockndiGetPHSRNumberOfHandles, \
         mockndiGetPHSRHandle, mockndiVER, \
         MockNDIDevice, MockBXFrameSource
 
@@ -24,7 +23,7 @@ def test_getframe_polaris_mock(mocker):
     mocker.patch('ndicapy.ndiGetError', mockndiGetError)
     mocker.patch('ndicapy.ndiClose')
     mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
-            mockndiGetPHSRNumberOfHandles)
+            ndidevice.mockndiGetPHSRNumberOfHandles)
     mocker.patch('ndicapy.ndiGetPHRQHandle', ndidevice.mockndiGetPHRQHandle)
     mocker.patch('ndicapy.ndiPVWRFromFile')
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
@@ -52,7 +51,7 @@ def test_getframe_missing(mocker):
     mocker.patch('ndicapy.ndiGetError', mockndiGetError)
     mocker.patch('ndicapy.ndiClose')
     mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
-            mockndiGetPHSRNumberOfHandles)
+            ndidevice.mockndiGetPHSRNumberOfHandles)
     mocker.patch('ndicapy.ndiGetPHRQHandle', ndidevice.mockndiGetPHRQHandle)
     mocker.patch('ndicapy.ndiPVWRFromFile')
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)

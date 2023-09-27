@@ -45,10 +45,6 @@ def mockComports(): #pylint:disable=invalid-name
     mock_ports[5].device = 'good port'
     return mock_ports
 
-def mockndiGetPHSRNumberOfHandles(_device): #pylint:disable=invalid-name
-    """Mock of ndiGetPHSRNumberOfHandles"""
-    return 4
-
 def mockndiGetPHSRHandle(_device, index): #pylint:disable=invalid-name
     """Mock of ndiGetPHSRHandle"""
     return int(index)
@@ -72,6 +68,11 @@ class MockNDIDevice():
     def mockndiGetPHRQHandle(self, _device): #pylint:disable=invalid-name
         """Mock of ndiGetPHRQHandle"""
         return int(self.attached_tools - 1)
+
+    def mockndiGetPHSRNumberOfHandles(self, _device): #pylint:disable=invalid-name
+        """Mock of ndiGetPHSRNumberOfHandles"""
+        return self.attached_tools
+
 
 class MockBXFrameSource():
     """
