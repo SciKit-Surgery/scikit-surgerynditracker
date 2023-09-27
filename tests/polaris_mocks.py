@@ -100,8 +100,10 @@ class MockBXFrameSource():
         sksurgerycore.tests.algorithms
         """
         assert self.bx_frame_count > 0
-
-        return concatenate((self.rotation, self.position, self.quality))
+        #the base ndicapi library uses Py_BuildValue to return the transform
+        #as a tuple of double float values, so let's make sure we're als
+        #returning a tuple
+        return tuple(concatenate((self.rotation, self.position, self.quality)))
 
     def mockndiGetBXTransformMissing(self, _device, _port_handle): #pylint:disable=invalid-name
         """Mock of ndiGetBXTransform"""
