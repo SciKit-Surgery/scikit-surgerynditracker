@@ -5,9 +5,9 @@ from sksurgerynditracker.nditracker import NDITracker
 
 from tests.polaris_mocks import SETTINGS_POLARIS, mockndiProbe, \
         mockndiOpen, mockndiGetError, mockComports, \
-        mockndiGetPHSRNumberOfHandles, mockndiGetPHRQHandle, \
+        mockndiGetPHSRNumberOfHandles, \
         mockndiGetPHSRHandle, mockndiVER, \
-        MockBXFrameSource
+        MockNDIDevice, MockBXFrameSource
 
 def test_getframe_polaris_mock(mocker):
     """
@@ -16,15 +16,16 @@ def test_getframe_polaris_mock(mocker):
     """
     tracker = None
     bxsource = MockBXFrameSource()
+    ndidevice = MockNDIDevice()
     mocker.patch('serial.tools.list_ports.comports', mockComports)
     mocker.patch('ndicapy.ndiProbe', mockndiProbe)
     mocker.patch('ndicapy.ndiOpen', mockndiOpen)
-    mocker.patch('ndicapy.ndiCommand')
+    mocker.patch('ndicapy.ndiCommand', ndidevice.mockndiCommand)
     mocker.patch('ndicapy.ndiGetError', mockndiGetError)
     mocker.patch('ndicapy.ndiClose')
     mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
             mockndiGetPHSRNumberOfHandles)
-    mocker.patch('ndicapy.ndiGetPHRQHandle', mockndiGetPHRQHandle)
+    mocker.patch('ndicapy.ndiGetPHRQHandle', ndidevice.mockndiGetPHRQHandle)
     mocker.patch('ndicapy.ndiPVWRFromFile')
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
     mocker.patch('ndicapy.ndiVER', mockndiVER)
@@ -43,15 +44,16 @@ def test_getframe_missing(mocker):
     """
     tracker = None
     bxsource = MockBXFrameSource()
+    ndidevice = MockNDIDevice()
     mocker.patch('serial.tools.list_ports.comports', mockComports)
     mocker.patch('ndicapy.ndiProbe', mockndiProbe)
     mocker.patch('ndicapy.ndiOpen', mockndiOpen)
-    mocker.patch('ndicapy.ndiCommand')
+    mocker.patch('ndicapy.ndiCommand', ndidevice.mockndiCommand)
     mocker.patch('ndicapy.ndiGetError', mockndiGetError)
     mocker.patch('ndicapy.ndiClose')
     mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
             mockndiGetPHSRNumberOfHandles)
-    mocker.patch('ndicapy.ndiGetPHRQHandle', mockndiGetPHRQHandle)
+    mocker.patch('ndicapy.ndiGetPHRQHandle', ndidevice.mockndiGetPHRQHandle)
     mocker.patch('ndicapy.ndiPVWRFromFile')
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
     mocker.patch('ndicapy.ndiVER', mockndiVER)

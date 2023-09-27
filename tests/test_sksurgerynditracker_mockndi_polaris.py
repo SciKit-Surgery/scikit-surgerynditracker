@@ -8,8 +8,8 @@ from sksurgerynditracker.nditracker import NDITracker
 
 from tests.polaris_mocks import SETTINGS_POLARIS, mockndiProbe, \
         mockndiOpen, mockndiOpen_fail, mockndiGetError, mockComports, \
-        mockndiGetPHSRNumberOfHandles, mockndiGetPHRQHandle, \
-        mockndiGetPHSRHandle, mockndiVER
+        mockndiGetPHSRNumberOfHandles, \
+        mockndiGetPHSRHandle, mockndiVER, MockNDIDevice
 
 def test_connect_polaris_mock(mocker):
     """
@@ -17,15 +17,16 @@ def test_connect_polaris_mock(mocker):
     reqs: 03, 04
     """
     tracker = None
+    ndidevice = MockNDIDevice()
     mocker.patch('serial.tools.list_ports.comports', mockComports)
     mocker.patch('ndicapy.ndiProbe', mockndiProbe)
     mocker.patch('ndicapy.ndiOpen', mockndiOpen)
-    mocker.patch('ndicapy.ndiCommand')
+    mocker.patch('ndicapy.ndiCommand', ndidevice.mockndiCommand)
     mocker.patch('ndicapy.ndiGetError', mockndiGetError)
     mocker.patch('ndicapy.ndiClose')
     mocker.patch('ndicapy.ndiGetPHSRNumberOfHandles',
             mockndiGetPHSRNumberOfHandles)
-    mocker.patch('ndicapy.ndiGetPHRQHandle', mockndiGetPHRQHandle)
+    mocker.patch('ndicapy.ndiGetPHRQHandle', ndidevice.mockndiGetPHRQHandle)
     mocker.patch('ndicapy.ndiPVWRFromFile')
     mocker.patch('ndicapy.ndiGetPHSRHandle', mockndiGetPHSRHandle)
     mocker.patch('ndicapy.ndiVER', mockndiVER)
@@ -45,7 +46,7 @@ def test_connect_polaris_mock(mocker):
     assert spy.call_args_list[9] == call(True, 'PHSR:01')
     assert spy.call_args_list[10] == call(True, 'PHSR:02')
     assert spy.call_args_list[11] == call(True, 'PINIT:00')
-    assert spy.call_args_list[12] == call(True, 'PINIT:00')
+    assert spy.call_args_list[12] == call(True, 'PINIT:01')
     assert spy.call_args_list[13] == call(True, 'PHSR:03')
     assert spy.call_args_list[14] == call(True, 'PENA:00D')
     assert spy.call_args_list[15] == call(True, 'PENA:01D')

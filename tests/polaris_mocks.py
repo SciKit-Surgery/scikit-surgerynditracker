@@ -49,10 +49,6 @@ def mockndiGetPHSRNumberOfHandles(_device): #pylint:disable=invalid-name
     """Mock of ndiGetPHSRNumberOfHandles"""
     return 4
 
-def mockndiGetPHRQHandle(_device): #pylint:disable=invalid-name
-    """Mock of ndiGetPHRQHandle"""
-    return int(0)
-
 def mockndiGetPHSRHandle(_device, index): #pylint:disable=invalid-name
     """Mock of ndiGetPHSRHandle"""
     return int(index)
@@ -60,6 +56,22 @@ def mockndiGetPHSRHandle(_device, index): #pylint:disable=invalid-name
 def mockndiVER(_device, _other_arg): #pylint:disable=invalid-name
     """Mock of ndiVER"""
     return 'Mock for Testing'
+
+class MockNDIDevice():
+    """
+    A mock NDI device, enables us to keep track of how many tools we've added
+    """
+    def __init__(self):
+        self.attached_tools = 0
+
+    def mockndiCommand(self, _device, command): #pylint:disable=invalid-name
+        """Mock a general command, strings over serial"""
+        if command == "PHRQ:*********1****":
+            self.attached_tools += 1
+
+    def mockndiGetPHRQHandle(self, _device): #pylint:disable=invalid-name
+        """Mock of ndiGetPHRQHandle"""
+        return int(self.attached_tools - 1)
 
 class MockBXFrameSource():
     """
