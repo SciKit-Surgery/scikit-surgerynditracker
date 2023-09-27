@@ -1,6 +1,8 @@
 # coding=utf-8
 
 """scikit-surgerynditracker tests using a mocked ndicapy"""
+
+import numpy as np
 from sksurgerynditracker.nditracker import NDITracker
 
 from tests.polaris_mocks import SETTINGS_POLARIS, mockndiProbe, \
@@ -32,6 +34,8 @@ def test_getframe_polaris_mock(mocker):
     mocker.patch('ndicapy.ndiGetBXTransform', bxsource.mockndiGetBXTransform)
 
     tracker = NDITracker(SETTINGS_POLARIS)
+
+    bxsource.setdevice(ndidevice)
     tracker.get_frame()
 
     del tracker
@@ -61,10 +65,20 @@ def test_getframe_missing(mocker):
             bxsource.mockndiGetBXTransformMissing)
 
     tracker = NDITracker(SETTINGS_POLARIS)
-    (port_handles, time_stamps, frame_numbers, _tracking,
-                _tracking_quality ) = tracker.get_frame()
+
+    bxsource.setdevice(ndidevice)
+    (port_handles, time_stamps, frame_numbers, tracking,
+                tracking_quality ) = tracker.get_frame()
+
     print (port_handles)
-    print (time_stamps)
     print (frame_numbers)
+    print (tracking)
+    print (tracking_quality)
+
+    assert len(port_handles) == 2
+    assert len(time_stamps) == 2
+    assert frame_numbers.count(1) == 2
+    assert np.all(np.isnan(tracking))
+    assert np.all(np.isnan(tracking_quality))
 
     del tracker

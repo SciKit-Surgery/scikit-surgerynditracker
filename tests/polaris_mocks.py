@@ -82,14 +82,32 @@ class MockBXFrameSource():
     """
     def __init__(self):
         self.bx_frame_count = 0
+        self.bx_call_count = 0
         self.rotation = array([0, 0, 0, 0])
         self.position = array([0, 0, 0])
         self.velocity = array([10, -20, 5])
         self.quality = array([1])
+        self.tracked_tools = 0
 
-    def mockndiGetBXFrame(self, _device, _port_handle): #pylint:disable=invalid-name
+    def setdevice(self, ndidevice):
+        """
+        We set an ndidevice so we know how many tracked objects to
+        return
+        """
+        assert isinstance (ndidevice, MockNDIDevice)
+        self.tracked_tools = ndidevice.attached_tools
+
+    def mockndiGetBXFrame(self, _device, port_handle): #pylint:disable=invalid-name
         """Mock of ndiGetBXFrame"""
-        self.bx_frame_count += 1
+        self.bx_call_count += 1
+        ph_int = int.from_bytes(port_handle, byteorder = 'little')
+        if ph_int == 0:
+            self.bx_frame_count += 1
+
+        assert ph_int < self.tracked_tools
+        if ph_int == self.tracked_tools - 1:
+            assert self.bx_call_count == self.bx_frame_count * \
+                    self.tracked_tools
 
         return self.bx_frame_count
 
