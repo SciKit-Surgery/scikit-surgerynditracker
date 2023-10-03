@@ -116,6 +116,8 @@ class NDITracker(SKSBaseTracker):
 
             ports to probe:
 
+            use quaternions:
+
         :raises Exception: IOError, KeyError, OSError
         """
         self._device = None
