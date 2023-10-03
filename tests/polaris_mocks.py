@@ -13,6 +13,15 @@ SETTINGS_POLARIS = {
         "data/8700339.rom"]
     }
 
+SETTINGS_POLARIS_QUAT = {
+    "tracker type": "polaris",
+    "ports to probe": 20,
+    "romfiles" : [
+        "data/something_else.rom",
+        "data/8700339.rom"],
+    "use quaternions": "true"
+    }
+
 class MockPort:
     """A fake serial port for ndi"""
     device = 'bad port'
@@ -83,10 +92,10 @@ class MockBXFrameSource():
     def __init__(self):
         self.bx_frame_count = 0
         self.bx_call_count = 0
-        self.rotation = array([0, 0, 0, 0])
-        self.position = array([0, 0, 0])
-        self.velocity = array([10, -20, 5])
-        self.quality = array([1])
+        self.rotation = array([1., 0., 0., 0.])
+        self.position = array([0., 0., 0.])
+        self.velocity = array([10., -20., 5.])
+        self.quality = array([1.])
         self.tracked_tools = 0
 
     def setdevice(self, ndidevice):
@@ -111,18 +120,25 @@ class MockBXFrameSource():
 
         return self.bx_frame_count
 
-    def mockndiGetBXTransform(self, _device, _port_handle): #pylint:disable=invalid-name
+    def mockndiGetBXTransform(self, _device, port_handle): #pylint:disable=invalid-name
         """
         Mock of ndiGetBXTransform. To enable a simple test of tracking
         smoothing translate the mock object between frames. Full testing of
         the averaging code is in the base class
         sksurgerycore.tests.algorithms
+        The base ndicapi library uses Py_BuildValue to return the transform
+        as a tuple of double float values, so we also
+        return a tuple
         """
         assert self.bx_frame_count > 0
-        #the base ndicapi library uses Py_BuildValue to return the transform
-        #as a tuple of double float values, so let's make sure we're als
-        #returning a tuple
-        return tuple(concatenate((self.rotation, self.position, self.quality)))
+        ph_int = int.from_bytes(port_handle, byteorder = 'little')
+        if ph_int == 0:
+            self.position = self.velocity * self.bx_frame_count
+            return tuple(concatenate((self.rotation, self.position,
+                self.quality)))
+
+        return tuple(concatenate((self.rotation, array([0, 0, 0]),
+            self.quality)))
 
     def mockndiGetBXTransformMissing(self, _device, _port_handle): #pylint:disable=invalid-name
         """Mock of ndiGetBXTransform"""
