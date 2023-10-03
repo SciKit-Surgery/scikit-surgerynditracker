@@ -36,7 +36,42 @@ def test_getframe_polaris_mock(mocker):
     tracker = NDITracker(SETTINGS_POLARIS)
 
     bxsource.setdevice(ndidevice)
-    tracker.get_frame()
+
+    (port_handles, time_stamps, frame_numbers, tracking,
+                tracking_quality ) = tracker.get_frame()
+
+    assert len(port_handles) == 2
+    assert len(time_stamps) == 2
+    assert frame_numbers.count(1) == 2
+    expected_tracking_0 = np.array([[1.,0.,0.,10.],
+                                 [0.,1.,0.,-20.],
+                                 [0.,0.,1.,5.],
+                                 [0.,0.,0.,1.]])
+    assert np.array_equal(expected_tracking_0, tracking[0])
+    expected_tracking_1 = np.array([[1.,0.,0.,0.],
+                                 [0.,1.,0.,0.],
+                                 [0.,0.,1.,0.],
+                                 [0.,0.,0.,1.]])
+    assert np.array_equal(expected_tracking_1, tracking[1])
+    assert tracking_quality.count(1.) == 2
+
+    (port_handles, time_stamps, frame_numbers, tracking,
+                tracking_quality ) = tracker.get_frame()
+
+    assert len(port_handles) == 2
+    assert len(time_stamps) == 2
+    assert frame_numbers.count(2) == 2
+    expected_tracking_0 = np.array([[1.,0.,0.,20.],
+                                 [0.,1.,0.,-40.],
+                                 [0.,0.,1.,10.],
+                                 [0.,0.,0.,1.]])
+    assert np.array_equal(expected_tracking_0, tracking[0])
+    expected_tracking_1 = np.array([[1.,0.,0.,0.],
+                                 [0.,1.,0.,0.],
+                                 [0.,0.,1.,0.],
+                                 [0.,0.,0.,1.]])
+    assert np.array_equal(expected_tracking_1, tracking[1])
+    assert tracking_quality.count(1.) == 2
 
     del tracker
 
@@ -69,11 +104,6 @@ def test_getframe_missing(mocker):
     bxsource.setdevice(ndidevice)
     (port_handles, time_stamps, frame_numbers, tracking,
                 tracking_quality ) = tracker.get_frame()
-
-    print (port_handles)
-    print (frame_numbers)
-    print (tracking)
-    print (tracking_quality)
 
     assert len(port_handles) == 2
     assert len(time_stamps) == 2
