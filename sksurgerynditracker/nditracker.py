@@ -116,7 +116,10 @@ class NDITracker(SKSBaseTracker):
 
             ports to probe:
 
-            use quaternions:
+            use quaternions: default is false
+
+            smoothing buffer: specify a buffer over which to average the
+                tracking, defaults to 1
 
         :raises Exception: IOError, KeyError, OSError
         """
