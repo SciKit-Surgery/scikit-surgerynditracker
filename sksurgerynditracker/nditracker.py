@@ -12,7 +12,7 @@ from time import time
 from serial.tools import list_ports #pylint: disable=import-error
 
 from six import int2byte
-from numpy import full, nan, reshape, transpose
+from numpy import full, nan, reshape
 from sksurgerycore.baseclasses.tracker import SKSBaseTracker
 import ndicapy
 from sksurgerynditracker.serial_utils.com_ports import \
@@ -452,7 +452,8 @@ class NDITracker(SKSBaseTracker):
         port_handles = []
         time_stamps = []
         frame_numbers = []
-        tracking = []
+        tracking_rots = []
+        tracking_trans = []
         tracking_quality = []
 
         timestamp = time()
@@ -469,21 +470,13 @@ class NDITracker(SKSBaseTracker):
                     descriptor.get("c_str port handle"))
                 if not qtransform == "MISSING" and not qtransform == "DISABLED":
                     tracking_quality.append(qtransform[7])
-                    if not self.use_quaternions:
-                        transform = transpose(
-                            reshape(ndicapy.ndiTransformToMatrixd(qtransform),
-                                    [4, 4]))
-                    else:
-                        transform = reshape(qtransform[0:7], [1, 7])
+                    transform = reshape(qtransform[0:7], [1, 7])
                 else:
                     tracking_quality.append(nan)
-                    if not self.use_quaternions:
-                        transform = full((4, 4), nan)
-                    else:
-                        transform = full((1, 7), nan)
+                    transform = full((1, 7), nan)
 
-                tracking.append(transform)
-
+                tracking_rots.append(transform[0][0:4])
+                tracking_trans.append(transform[0][4:7])
         else:
             for descriptor in self._tool_descriptors:
                 port_handles.append(descriptor.get(
@@ -491,13 +484,14 @@ class NDITracker(SKSBaseTracker):
                 time_stamps.append(timestamp)
                 frame_numbers.append(0)
                 tracking_quality.append(0.0)
-                if not self.use_quaternions:
-                    tracking.append(full((4, 4), nan))
-                else:
-                    tracking.append(full((1, 7), nan))
+                tracking_rots.append(full((1, 4), nan))
+                tracking_trans.append(full((1, 3), nan))
 
-        return port_handles, time_stamps, frame_numbers, tracking, \
-                tracking_quality
+        self.add_frame_to_buffer(port_handles, time_stamps, frame_numbers,
+            tracking_rots, tracking_trans, tracking_quality,
+            rot_is_quaternion = True)
+
+        return self.get_smooth_frame(port_handles)
 
     def get_tool_descriptions(self):
         """ Returns the port handles and tool descriptions """
