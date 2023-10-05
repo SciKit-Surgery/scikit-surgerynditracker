@@ -157,7 +157,8 @@ def test_getframe_missing(mocker):
     assert len(port_handles) == 2
     assert len(time_stamps) == 2
     assert frame_numbers.count(1) == 2
-    assert np.all(np.isnan(tracking))
+    assert np.any(np.isnan(tracking[0]))
+    assert np.any(np.isnan(tracking[1]))
     assert np.all(np.isnan(tracking_quality))
 
     del tracker
@@ -307,7 +308,8 @@ def test_getframe_missing_smooth(mocker):
     assert len(port_handles) == 2
     assert len(time_stamps) == 2
     assert frame_numbers.count(1) == 2
-    assert np.all(np.isnan(tracking))
+    assert np.any(np.isnan(tracking[0]))
+    assert np.any(np.isnan(tracking[1]))
     assert np.all(np.isnan(tracking_quality))
 
     del tracker
