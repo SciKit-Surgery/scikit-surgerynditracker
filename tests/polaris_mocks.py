@@ -13,14 +13,13 @@ SETTINGS_POLARIS = {
         "data/8700339.rom"]
     }
 
-SETTINGS_POLARIS_QUAT = {
-    "tracker type": "polaris",
-    "ports to probe": 20,
-    "romfiles" : [
-        "data/something_else.rom",
-        "data/8700339.rom"],
-    "use quaternions": "true"
-    }
+SETTINGS_POLARIS_QUAT = SETTINGS_POLARIS.copy()
+SETTINGS_POLARIS_QUAT["use quaternions"] = "true"
+
+SETTINGS_POLARIS_SMOOTH = SETTINGS_POLARIS.copy()
+SETTINGS_POLARIS_QUAT_SMOOTH = SETTINGS_POLARIS_QUAT.copy()
+SETTINGS_POLARIS_SMOOTH["smoothing buffer"] = 2
+SETTINGS_POLARIS_QUAT_SMOOTH["smoothing buffer"] = 2
 
 class MockPort:
     """A fake serial port for ndi"""

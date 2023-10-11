@@ -5,5 +5,5 @@
 ndicapi>=3.2.6
 numpy>=1.11
 six>=1.10
-scikit-surgerycore>=0.6.9
+scikit-surgerycore>=0.7.0
 pyserial
