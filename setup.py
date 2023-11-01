@@ -52,7 +52,7 @@ setup(
     install_requires=[
         'six>=1.10',
         'numpy>=1.11',
-        'ndicapi==3.7.0rc1',
+        'ndicapi>=3.2.6',
         'scikit-surgerycore>=0.7.0',
         'pyserial'
     ],
