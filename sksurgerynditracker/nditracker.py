@@ -200,7 +200,7 @@ class NDITracker(SKSBaseTracker):
     def _connect_aurora(self, configuration):
         name = _get_serial_port_name(configuration)
         self._connect_serial(name)
-        self._find_wired_ports()
+        self._find_wired_ports(configuration.get('verbose', False))
 
     def _connect_network(self, configuration):
         #try and ping first to save time with timeouts
@@ -374,27 +374,38 @@ class NDITracker(SKSBaseTracker):
                 self._check_for_errors('Initialising port handle '
                                        f'{tool.get("port handle"):02x}.')
 
-    def _find_wired_ports(self):
+    def _find_wired_ports(self, verbose = False):
         """For systems with wired tools, gets the number of tools plugged in
         and sticks them in the tool descriptors list"""
         if not self._device:
             raise ValueError('find wired ports called with no NDI device')
 
-        ndicapy.ndiCommand(self._device, 'PHSR:02')
-        number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
-        while number_of_tools > 0:
-            for ndi_tool_index in range(number_of_tools):
-                port_handle = ndicapy.ndiGetPHSRHandle(self._device,
-                                                       ndi_tool_index)
+        with _open_logging(verbose) as fileout:
+            while True:
+                ndicapy.ndiCommand(self._device, 'PHSR:02')
+                number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(
+                        self._device)
+                print("Found ", number_of_tools, " wired tools.", file=fileout)
+                for ndi_tool_index in range(number_of_tools):
+                    print("Attempting to initialise tool ", ndi_tool_index,
+                            file=fileout)
+                    port_handle = ndicapy.ndiGetPHSRHandle(self._device,
+                                                           ndi_tool_index)
 
-                self._tool_descriptors.append({"description" : ndi_tool_index,
-                                               "port handle" : port_handle,
-                                               "c_str port handle" :
-                                               int2byte(port_handle)})
-                ndicapy.ndiCommand(self._device,
-                                   f"PINIT:{port_handle:02x}")
-            ndicapy.ndiCommand(self._device, 'PHSR:02')
-            number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
+                    print("With port handle ", port_handle, file=fileout)
+
+                    self._tool_descriptors.append(
+                            {"description" : ndi_tool_index,
+                             "port handle" : port_handle,
+                             "c_str port handle" :
+                             int2byte(port_handle)})
+                    ndicapy.ndiCommand(self._device,
+                                       f"PINIT:{port_handle:02x}")
+                    self._check_for_errors('Initialising port handle '
+                                       f'{port_handle:02x}.')
+
+                if number_of_tools <= 0:
+                    break
 
     def _enable_tools(self):
         if not self._device:
