@@ -327,13 +327,7 @@ class NDITracker(SKSBaseTracker):
         self._device = None
         self._state = None
 
-    def _read_sroms_from_file(self):
-        if not self._device:
-            raise ValueError('read srom called with no NDI device')
-
-        if self._state == "tracking":
-            self.stop_tracking()
-
+    def _free_ports(self):
         #free ports that are waiting to be freed
         ndicapy.ndiCommand(self._device, 'PHSR:01')
         number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
@@ -341,6 +335,15 @@ class NDITracker(SKSBaseTracker):
             port_handle = ndicapy.ndiGetPHSRHandle(self._device, tool_index)
             ndicapy.ndiCommand(self._device, f"PHF:{port_handle:02x}")
             self._check_for_errors(f'freeing port handle {tool_index:02x}.')
+
+    def _read_sroms_from_file(self):
+        if not self._device:
+            raise ValueError('read srom called with no NDI device')
+
+        if self._state == "tracking":
+            self.stop_tracking()
+
+        self._free_ports()
 
         for tool in self._tool_descriptors:
             ndicapy.ndiCommand(self._device, 'PHRQ:*********1****')
@@ -381,6 +384,9 @@ class NDITracker(SKSBaseTracker):
             raise ValueError('find wired ports called with no NDI device')
 
         with _open_logging(verbose) as fileout:
+
+            self._free_ports()
+
             while True:
                 ndicapy.ndiCommand(self._device, 'PHSR:02')
                 number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(

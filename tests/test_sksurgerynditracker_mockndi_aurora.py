@@ -86,24 +86,22 @@ def test_connect_aurora_mock(mocker):
     mockndiGetPHSRNumberOfHandles.number_of_tool_handles = 3
     tracker = NDITracker(SETTINGS_AURORA)
 
-    assert spy.call_count == 13
+    assert spy.call_count == 11
     assert spy.call_args_list[0] == call(True, 'INIT:')
     assert spy.call_args_list[1] == call(True, 'COMM:50000')
-    assert spy.call_args_list[2] == call(True, 'PHSR:02')
-    assert spy.call_args_list[3] == call(True, 'PINIT:00')
-    assert spy.call_args_list[4] == call(True, 'PINIT:01')
+    assert spy.call_args_list[2] == call(True, 'PHSR:01')
+    assert spy.call_args_list[3] == call(True, 'PHF:00')
+    assert spy.call_args_list[4] == call(True, 'PHF:01')
     assert spy.call_args_list[5] == call(True, 'PHSR:02')
     assert spy.call_args_list[6] == call(True, 'PINIT:00')
     assert spy.call_args_list[7] == call(True, 'PHSR:02')
     assert spy.call_args_list[8] == call(True, 'PHSR:02')
     assert spy.call_args_list[9] == call(True, 'PINIT:00')
-    assert spy.call_args_list[10] == call(True, 'PINIT:01')
-    assert spy.call_args_list[11] == call(True, 'PINIT:00')
-    assert spy.call_args_list[12] == call(True, 'PHSR:03')
+    assert spy.call_args_list[10] == call(True, 'PHSR:03')
     tracker.start_tracking()
-    assert spy.call_args_list[13] == call(True, 'TSTART:')
+    assert spy.call_args_list[11] == call(True, 'TSTART:')
     tracker.stop_tracking()
-    assert spy.call_args_list[14] == call(True, 'TSTOP:')
+    assert spy.call_args_list[12] == call(True, 'TSTOP:')
     tracker.close()
     del tracker
 
