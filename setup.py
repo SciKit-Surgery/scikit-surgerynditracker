@@ -53,7 +53,7 @@ setup(
         'six>=1.10',
         'numpy>=1.11',
         'ndicapi>=3.2.6',
-        'scikit-surgerycore>=0.7.0',
+        'scikit-surgerycore>=0.7.1',
         'pyserial'
     ],
 )
