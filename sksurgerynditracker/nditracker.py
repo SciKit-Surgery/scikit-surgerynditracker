@@ -74,7 +74,8 @@ def _get_serial_port_name(configuration):
                       " Result: ", result, file=fileout)
                 if result == ndicapy.NDI_OKAY:
                     break
-        else:
+            else:
+                # If we did not break from the for loop:
                 raise IOError('Could not find any NDI device in '
                     f'{ports_to_probe} serial port candidates checked. '
                     + SERIAL_CONNECTION_ERRMSG)
@@ -88,7 +89,7 @@ def _get_serial_port_name(configuration):
                           " Result: ", result, file=fileout)
                 else:
                     raise IOError(f'Could not connect to serial port {serial_port} '
-                        f'as there are only {len(serial_ports)} ports available'
+                        f'as there are only {len(serial_ports)} ports available.'
                         + SERIAL_CONNECTION_ERRMSG)
 
             if isinstance(serial_port, str):
@@ -96,6 +97,7 @@ def _get_serial_port_name(configuration):
                 result = ndicapy.ndiProbe(name)
                 print("Probing port: ", name,
                       " Result: ", result, file=fileout)
+                    
             if result != ndicapy.NDI_OKAY:
                 raise IOError(f'Could not connect to an NDI device on the chosen port, {serial_port}.'
                     + SERIAL_CONNECTION_ERRMSG)
