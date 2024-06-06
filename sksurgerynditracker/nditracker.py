@@ -61,8 +61,7 @@ def _get_serial_port_name(configuration):
         serial_ports = list_ports.comports()
         result = None
         name = None
-        if ports_to_probe > len(serial_ports):
-            ports_to_probe = len(serial_ports)
+        ports_to_probe = min(ports_to_probe, len(serial_ports))
 
         if serial_port is None:
             for port_no in range(ports_to_probe):
@@ -88,8 +87,9 @@ def _get_serial_port_name(configuration):
                     print("Probing port: ", serial_port, " got name: ", name,
                           " Result: ", result, file=fileout)
                 else:
-                    raise IOError(f'Could not connect to serial port {serial_port} '
-                        f'as there are only {len(serial_ports)} ports available.'
+                    raise IOError(f'Could not connect to serial port'
+                        f'{serial_port} as there are '
+                        f'only {len(serial_ports)} ports available.'
                         + serial_connection_errmsg)
 
             if isinstance(serial_port, str):
@@ -97,9 +97,10 @@ def _get_serial_port_name(configuration):
                 result = ndicapy.ndiProbe(name)
                 print("Probing port: ", name,
                       " Result: ", result, file=fileout)
-                    
+
             if result != ndicapy.NDI_OKAY:
-                raise IOError(f'Could not connect to an NDI device on the chosen port, {serial_port}.'
+                raise IOError(f'Could not connect to an NDI device on '
+                    f'the chosen port, {serial_port}.'
                     + serial_connection_errmsg)
         return name
 
