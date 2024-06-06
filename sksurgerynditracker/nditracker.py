@@ -46,6 +46,15 @@ def _get_serial_port_name(configuration):
     :raises: IOError if port not found or port probe fails
     """
 
+    serial_connection_errmsg = """
+    Please check the following:\n
+    \t1) Is an NDI device connected to your computer?\n
+    \t2) Is the NDI device switched on?\n
+    \t3) Do you have sufficient privilege to connect to
+    the device? (e.g. on Linux are you part of the "dialout"
+    group?)'
+    """
+
     with _open_logging(configuration.get('verbose', False)) as fileout:
         serial_port = configuration.get("serial port", None)
         ports_to_probe = configuration.get("ports to probe", 20)
@@ -65,6 +74,12 @@ def _get_serial_port_name(configuration):
                       " Result: ", result, file=fileout)
                 if result == ndicapy.NDI_OKAY:
                     break
+            else:
+                # If we did not break from the for loop:
+                raise IOError('Could not find any NDI device in '
+                    f'{ports_to_probe} serial port candidates checked. '
+                    + serial_connection_errmsg)
+
         else:
             if isinstance(serial_port, int):
                 if serial_port < len(serial_ports):
@@ -72,23 +87,20 @@ def _get_serial_port_name(configuration):
                     result = ndicapy.ndiProbe(name)
                     print("Probing port: ", serial_port, " got name: ", name,
                           " Result: ", result, file=fileout)
+                else:
+                    raise IOError(f'Could not connect to serial port {serial_port} '
+                        f'as there are only {len(serial_ports)} ports available.'
+                        + serial_connection_errmsg)
+
             if isinstance(serial_port, str):
                 name = serial_port
                 result = ndicapy.ndiProbe(name)
                 print("Probing port: ", name,
                       " Result: ", result, file=fileout)
-
-        if result != ndicapy.NDI_OKAY:
-            raise IOError(
-                'Could not find any NDI device in '
-                f'{ports_to_probe} serial port candidates checked. '
-                'Please check the following:\n'
-                '\t1) Is an NDI device connected to your computer?\n'
-                '\t2) Is the NDI device switched on?\n'
-                '\t3) Do you have sufficient privilege to connect to '
-                'the device? (e.g. on Linux are you part of the "dialout" '
-                'group?)')
-
+                    
+            if result != ndicapy.NDI_OKAY:
+                raise IOError(f'Could not connect to an NDI device on the chosen port, {serial_port}.'
+                    + serial_connection_errmsg)
         return name
 
 
