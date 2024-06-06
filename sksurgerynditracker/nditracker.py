@@ -61,8 +61,7 @@ def _get_serial_port_name(configuration):
         serial_ports = list_ports.comports()
         result = None
         name = None
-        if ports_to_probe > len(serial_ports):
-            ports_to_probe = len(serial_ports)
+        ports_to_probe = min(ports_to_probe, len(serial_ports))
 
         if serial_port is None:
             for port_no in range(ports_to_probe):
