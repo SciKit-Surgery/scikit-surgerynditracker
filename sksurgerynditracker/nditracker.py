@@ -94,6 +94,7 @@ def _get_serial_port_name(configuration):
 
             if isinstance(serial_port, str):
                 name = serial_port
+                name = fix_com_port_greater_than_9(name)
                 result = ndicapy.ndiProbe(name)
                 print("Probing port: ", name,
                       " Result: ", result, file=fileout)
