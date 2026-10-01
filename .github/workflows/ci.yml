@@ -43,6 +43,9 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     needs: test
+    environment: pypi
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v2
       - uses: actions/checkout@master
