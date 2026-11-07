@@ -527,8 +527,9 @@ class NDITracker(SKSBaseTracker):
             raise ValueError("""Called start tracking before device ready,
             try calling connect first""")
 
-        ndicapy.ndiCommand(self._device, 'TSTART:')
-        self._check_for_errors('starting tracking.')
+        if self._tracker_type != 'dummy':
+            ndicapy.ndiCommand(self._device, 'TSTART:')
+            self._check_for_errors('starting tracking.')
         self._state = 'tracking'
 
     def stop_tracking(self):
@@ -537,8 +538,12 @@ class NDITracker(SKSBaseTracker):
 
         :raises Exception: ValueError
         """
-        ndicapy.ndiCommand(self._device, 'TSTOP:')
-        self._check_for_errors('stopping tracking.')
+        if not self._device:
+            raise ValueError('stop tracking called with no NDI device')
+
+        if self._tracker_type != 'dummy':
+            ndicapy.ndiCommand(self._device, 'TSTOP:')
+            self._check_for_errors('stopping tracking.')
         self._state = 'ready'
 
     def _check_for_errors(self, message):
