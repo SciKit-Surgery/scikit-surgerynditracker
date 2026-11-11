@@ -245,23 +245,33 @@ def test_throw_file_not_found_error():
         _tracker = NDITracker(dummy_two_rom)
 
 
-def test_start_tracking():
-    """
-    test start tracking
-    reqs:
-    """
+def test_start_tracking(mocker):
+    """Dummy tracking supports restart and close without NDI API calls."""
+    command = mocker.patch('ndicapy.ndiCommand')
+    get_error = mocker.patch('ndicapy.ndiGetError')
     tracker = NDITracker(SETTINGS_DUMMY)
+    tracker.start_tracking()
     with pytest.raises(ValueError):
         tracker.start_tracking()
+    tracker.stop_tracking()
+    tracker.start_tracking()
     tracker.close()
+    with pytest.raises(ValueError):
+        tracker.start_tracking()
+    command.assert_not_called()
+    get_error.assert_not_called()
 
 
-def test_stop_tracking():
-    """
-    test stop tracking
-    reqs:
-    """
+def test_stop_tracking(mocker):
+    """Dummy stop skips NDI calls and rejects a closed device."""
+    command = mocker.patch('ndicapy.ndiCommand')
+    get_error = mocker.patch('ndicapy.ndiGetError')
     tracker = NDITracker(SETTINGS_DUMMY)
+    tracker.stop_tracking()
+    tracker.start_tracking()
+    tracker.stop_tracking()
+    tracker.close()
     with pytest.raises(ValueError):
         tracker.stop_tracking()
-    tracker.close()
+    command.assert_not_called()
+    get_error.assert_not_called()
