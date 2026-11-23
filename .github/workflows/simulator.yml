@@ -1,0 +1,48 @@
+name: Optional simulator integration
+on:
+  workflow_dispatch:
+    inputs:
+      simulator-repository:
+        description: Repository providing ndicapi-sim
+        required: true
+        default: udta/ndicapy-sim
+        type: string
+      simulator-ref:
+        description: Published simulator commit SHA or release tag to test
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12', '3.13', '3.14', '3.15']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tracker
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.simulator-repository }}
+          ref: ${{ inputs.simulator-ref }}
+          path: simulator
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install tracker development tools and optional simulator
+        run: |
+          python -m pip install -r tracker/requirements-dev.txt
+          python -m pip install './simulator[test]'
+      - name: Require a working optional package
+        run: python -c "import ndicapi_sim"
+      - name: Run simulator package tests
+        working-directory: simulator
+        run: python -m pytest -q
+      - name: Run tracker integration and optional-dependency tests
+        working-directory: tracker
+        run: python -m pytest -q tests/test_sksurgerynditracker_simulator.py tests/test_simulator_optional.py

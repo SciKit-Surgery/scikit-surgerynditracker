@@ -118,7 +118,9 @@ class NDITracker(SKSBaseTracker):
 
         :param configuration: A dictionary containing details of the tracker.
 
-            tracker type: vega polaris aurora dummy
+            tracker type: vega polaris aurora dummy simulator
+
+            simulation: options passed to ndicapi_sim (simulator only)
 
             ip address:
 
@@ -137,6 +139,7 @@ class NDITracker(SKSBaseTracker):
 
         :raises Exception: IOError, KeyError, OSError
         """
+        self._ndi = ndicapy
         self._device = None
         self._tool_descriptors = []
         self._tracker_type = None
@@ -162,6 +165,9 @@ class NDITracker(SKSBaseTracker):
         if self._tracker_type == "dummy":
             self._device = True
 
+        if self._tracker_type == "simulator":
+            self._connect_simulator(configuration)
+
         self._initialise_ports()
         self._enable_tools()
         self._get_firmware_version()
@@ -175,16 +181,16 @@ class NDITracker(SKSBaseTracker):
         certain devices we can't do this. Here we check the
         firmware version and set _use_bx_transforms to suit.
         """
-        self._get_frame = getattr(ndicapy, 'ndiGetBXFrame')
-        self._get_transform = getattr(ndicapy, 'ndiGetBXTransform')
+        self._get_frame = getattr(self._ndi, 'ndiGetBXFrame')
+        self._get_transform = getattr(self._ndi, 'ndiGetBXTransform')
         self._capture_string = 'BX:0801'
 
         firmware = self._get_firmware_version()
         if firmware in (' AURORA Rev 007', ' AURORA Rev 008',
                         ' Polaris Vega 008',
                         ' Polaris Spectra Rev 006', ' Polaris Spectra Rev 007'):
-            self._get_frame = getattr(ndicapy, 'ndiGetTXFrame')
-            self._get_transform = getattr(ndicapy, 'ndiGetTXTransform')
+            self._get_frame = getattr(self._ndi, 'ndiGetTXFrame')
+            self._get_transform = getattr(self._ndi, 'ndiGetTXTransform')
             self._capture_string = 'TX:0801'
 
     def _get_firmware_version(self):
@@ -196,11 +202,34 @@ class NDITracker(SKSBaseTracker):
         device_firmware_version = 'unknown 00.0'
 
         if self._tracker_type != 'dummy':
-            device_info = ndicapy.ndiVER(self._device, 0).split('\n')
+            device_info = self._ndi.ndiVER(self._device, 0).split('\n')
             for line in device_info:
                 if line.startswith('Freeze Tag:'):
                     device_firmware_version = line.split(':')[1]
         return device_firmware_version
+
+    def _connect_simulator(self, configuration):
+        # Keep all synthetic data generation in the optional external package.
+        try:
+            # This optional package need not be present for native trackers.
+            # pylint: disable=import-outside-toplevel,import-error
+            import ndicapi_sim
+        except ModuleNotFoundError as error:
+            if error.name != "ndicapi_sim":
+                raise
+            raise ImportError(
+                'Simulator mode requires ndicapi-sim. Install it with: '
+                'pip install "scikit-surgerynditracker[simulator]"'
+            ) from error
+        self._ndi = ndicapi_sim
+        self._device = self._ndi.open_simulator(
+            configuration.get("simulation", {}),
+            tracker_configuration=configuration)
+        self._ndi.ndiCommand(self._device, 'INIT:')
+        self._find_wired_ports()
+        for tool in self._tool_descriptors:
+            tool["description"] = self._ndi.get_tool_description(
+                self._device, tool["port handle"])
 
     def _connect_vega(self, configuration):
         self._connect_network(configuration)
@@ -260,12 +289,12 @@ class NDITracker(SKSBaseTracker):
             raise KeyError("Configuration must contain 'Tracker type'")
 
         tracker_type = configuration.get("tracker type")
-        if tracker_type in ("vega", "polaris", "aurora", "dummy"):
+        if tracker_type in ("vega", "polaris", "aurora", "dummy", "simulator"):
             self._tracker_type = tracker_type
         else:
             raise ValueError(
                 "Supported trackers are 'vega', 'aurora', 'polaris', "
-                "and 'dummy'")
+                "'dummy', and 'simulator'")
 
         if self._tracker_type == "vega":
             self._check_config_vega(configuration)
@@ -333,10 +362,10 @@ class NDITracker(SKSBaseTracker):
             self.stop_tracking()
 
         if self._tracker_type == "vega":
-            ndicapy.ndiCloseNetwork(self._device)
+            self._ndi.ndiCloseNetwork(self._device)
 
-        if self._tracker_type in ("aurora", "polaris"):
-            ndicapy.ndiClose(self._device)
+        if self._tracker_type in ("aurora", "polaris", "simulator"):
+            self._ndi.ndiClose(self._device)
 
         self._device = None
         self._state = None
@@ -381,9 +410,9 @@ class NDITracker(SKSBaseTracker):
             raise ValueError('init ports called with no NDI device')
 
         if not self._tracker_type == "dummy":
-            ndicapy.ndiCommand(self._device, 'PHSR:02')
+            self._ndi.ndiCommand(self._device, 'PHSR:02')
             for tool in self._tool_descriptors:
-                ndicapy.ndiCommand(self._device,
+                self._ndi.ndiCommand(self._device,
                         f'PINIT:{tool.get("port handle"):02x}')
                 self._check_for_errors('Initialising port handle '
                                        f'{tool.get("port handle"):02x}.')
@@ -394,31 +423,32 @@ class NDITracker(SKSBaseTracker):
         if not self._device:
             raise ValueError('find wired ports called with no NDI device')
 
-        ndicapy.ndiCommand(self._device, 'PHSR:02')
-        number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
+        self._ndi.ndiCommand(self._device, 'PHSR:02')
+        number_of_tools = self._ndi.ndiGetPHSRNumberOfHandles(self._device)
         while number_of_tools > 0:
             for ndi_tool_index in range(number_of_tools):
-                port_handle = ndicapy.ndiGetPHSRHandle(self._device,
+                port_handle = self._ndi.ndiGetPHSRHandle(self._device,
                                                        ndi_tool_index)
 
                 self._tool_descriptors.append({"description" : ndi_tool_index,
                                                "port handle" : port_handle,
                                                "c_str port handle" :
                                                int2byte(port_handle)})
-                ndicapy.ndiCommand(self._device,
+                self._ndi.ndiCommand(self._device,
                                    f"PINIT:{port_handle:02x}")
-            ndicapy.ndiCommand(self._device, 'PHSR:02')
-            number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
+            self._ndi.ndiCommand(self._device, 'PHSR:02')
+            number_of_tools = self._ndi.ndiGetPHSRNumberOfHandles(self._device)
 
     def _enable_tools(self):
         if not self._device:
             raise ValueError('enable tools called with no NDI device')
 
         if not self._tracker_type == "dummy":
-            ndicapy.ndiCommand(self._device, "PHSR:03")
-            number_of_tools = ndicapy.ndiGetPHSRNumberOfHandles(self._device)
+            self._ndi.ndiCommand(self._device, "PHSR:03")
+            number_of_tools = self._ndi.ndiGetPHSRNumberOfHandles(self._device)
             for tool_index in range(number_of_tools):
-                port_handle = ndicapy.ndiGetPHSRHandle(self._device, tool_index)
+                port_handle = self._ndi.ndiGetPHSRHandle(
+                    self._device, tool_index)
                 port_handle_already_present = False
                 for tool in self._tool_descriptors:
                     if tool.get("port handle") == port_handle:
@@ -432,7 +462,7 @@ class NDITracker(SKSBaseTracker):
                         int2byte(port_handle)})
 
                 mode = 'D'
-                ndicapy.ndiCommand(self._device,
+                self._ndi.ndiCommand(self._device,
                         f"PENA:{port_handle:02x}{mode}")
                 self._check_for_errors(f'Enabling port handle {port_handle}.')
 
@@ -472,7 +502,7 @@ class NDITracker(SKSBaseTracker):
 
         timestamp = time()
         if not self._tracker_type == "dummy":
-            ndicapy.ndiCommand(self._device, self._capture_string)
+            self._ndi.ndiCommand(self._device, self._capture_string)
             for descriptor in self._tool_descriptors:
                 port_handles.append(descriptor.get("port handle"))
                 time_stamps.append(timestamp)
@@ -528,7 +558,7 @@ class NDITracker(SKSBaseTracker):
             try calling connect first""")
 
         if self._tracker_type != 'dummy':
-            ndicapy.ndiCommand(self._device, 'TSTART:')
+            self._ndi.ndiCommand(self._device, 'TSTART:')
             self._check_for_errors('starting tracking.')
         self._state = 'tracking'
 
@@ -542,13 +572,13 @@ class NDITracker(SKSBaseTracker):
             raise ValueError('stop tracking called with no NDI device')
 
         if self._tracker_type != 'dummy':
-            ndicapy.ndiCommand(self._device, 'TSTOP:')
+            self._ndi.ndiCommand(self._device, 'TSTOP:')
             self._check_for_errors('stopping tracking.')
         self._state = 'ready'
 
     def _check_for_errors(self, message):
-        errnum = ndicapy.ndiGetError(self._device)
-        if errnum != ndicapy.NDI_OKAY:
-            ndicapy.ndiClose(self._device)
+        errnum = self._ndi.ndiGetError(self._device)
+        if errnum != self._ndi.NDI_OKAY:
+            self._ndi.ndiClose(self._device)
             raise IOError(f'error when {message}. the error was: '
-                          f'{ndicapy.ndiErrorString(errnum)}')
+                          f'{self._ndi.ndiErrorString(errnum)}')

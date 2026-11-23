@@ -56,4 +56,7 @@ setup(
         'scikit-surgerycore>=0.7.1',
         'pyserial'
     ],
+    extras_require={
+        'simulator': ['ndicapi-sim>=0.1.0'],
+    },
 )

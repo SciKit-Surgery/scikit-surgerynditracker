@@ -49,6 +49,7 @@ def test_connect_vega_mock(mocker):
     reqs: 03, 04
     """
     tracker = None
+    mocker.patch('sksurgerynditracker.nditracker.call', return_value=0)
     mocker.patch('ndicapy.ndiOpenNetwork', mockndiOpenNetwork)
     mocker.patch('ndicapy.ndiCommand')
     mocker.patch('ndicapy.ndiGetError', mockndiGetError)
@@ -79,6 +80,7 @@ def test_connect_vega_mock_nodevice(mocker):
     reqs: 03, 04
     """
     tracker = None
+    mocker.patch('sksurgerynditracker.nditracker.call', return_value=0)
     mocker.patch('ndicapy.ndiOpenNetwork', mockndiOpenNetwork_nodevice)
     mocker.patch('ndicapy.ndiCommand')
 
